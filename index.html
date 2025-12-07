@@ -16,11 +16,11 @@
         .login-box { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 90%; }
         .login-box input, .login-box select { padding: 12px; font-size: 18px; width: 80%; border: 2px solid #ddd; border-radius: 5px; margin-bottom: 20px; }
         
-        /* ========== 遊戲區域配置 (加大版) ========== */
+        /* ========== 遊戲區域配置 (縮小版) ========== */
         .game-area { 
-            width: 85%;          /* 手機版佔滿寬度 */
-            max-width: 550px;    /* 電腦版最大寬度限制 (原本是300) */
-            height: 750px;       /* 總高度拉高 (原本是580) */
+            width: 95%;          
+            max-width: 500px;    /* 從 550px 縮小至 500px */
+            height: 680px;       /* 從 750px 縮小至 680px */
             margin-bottom: 10px; 
             position: relative;
             display: flex;
@@ -28,13 +28,13 @@
             gap: 10px; 
         }
 
-        /* 1. 靜態圖片區 (大幅加高) */
+        /* 1. 靜態圖片區 (等比縮小) */
         .static-img-container {
-            width: 90%;
-            height: 450px;       /* ★ 關鍵修改：高度加倍 (原本200px) */
+            width: 100%;
+            height: 400px;       /* 從 450px 縮小至 400px */
             background: white;
             border-radius: 15px;
-            padding: 5px;        /* 減少留白 */
+            padding: 5px;        
             box-sizing: border-box;
             box-shadow: 0 4px 8px rgba(0,0,0,0.05);
             display: flex;
@@ -42,18 +42,18 @@
             justify-content: center;
             border: 1px solid #ddd;
             cursor: pointer;
-            overflow: hidden;    /* 防止圖片溢出 */
+            overflow: hidden;    
         }
 
         .parasite-img { 
-            width: 90%;         /* 強制撐滿容器寬度 */
-            height: 90%;        /* 強制撐滿容器高度 */
-            object-fit: contain; /* 保持比例，完整顯示 */
+            width: 100%;         
+            height: 100%;        
+            object-fit: contain; 
         }
 
         /* 2. 靜態提示區 */
         .static-hint-area {
-            height: 30px; 
+            height: 25px; /* 稍微縮小 */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -63,9 +63,9 @@
         /* 3. 下方的翻轉卡片 */
         .card-container {
             perspective: 600px;
-            width: 90%;
-            flex: 1; /* 自動填滿剩下的空間 */
-            min-height: 200px; /* 確保輸入區不會太小 */
+            width: 100%;
+            flex: 1; 
+            min-height: 180px; /* 從 200px 縮小至 180px */
             position: relative;
         }
 
@@ -92,15 +92,22 @@
             align-items: center; 
             justify-content: center; 
             background: white; 
-            padding: 15px; 
+            padding: 12px; /* 從 15px 縮小至 12px */
             box-sizing: border-box; 
         }
         
         .card__face--front { background: #ffffff; }
         .card__face--back { background: #f8f9fa; transform: rotateY(180deg); text-align: center; }
         
-        /* 輸入與按鈕 */
-        input[type="text"] { padding: 12px; width: 90%; margin-bottom: 15px; border: 2px solid #ddd; border-radius: 5px; font-size: 18px; }
+        /* 輸入與按鈕 (配合縮小調整字體與間距) */
+        input[type="text"] { 
+            padding: 10px;        /* 縮小 padding */
+            width: 90%; 
+            margin-bottom: 10px;  /* 縮小 margin */
+            border: 2px solid #ddd; 
+            border-radius: 5px; 
+            font-size: 16px;      /* 從 18px 縮小至 16px */
+        }
         button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background 0.3s; }
         button:hover { background-color: #0056b3; }
         button:disabled { background-color: #ccc; cursor: not-allowed; }
@@ -119,28 +126,28 @@
         .btn-restart { background-color: #17a2b8; margin-top: 10px; }
 
         /* 結果顯示 */
-        .result-text { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+        .result-text { font-size: 22px; font-weight: bold; margin-bottom: 5px; } /* 字體微調 */
         .correct { color: #28a745; } .wrong { color: #dc3545; }
-        .answer-detail { font-size: 18px; color: #555; margin-bottom: 10px; width: 100%; }
+        .answer-detail { font-size: 16px; color: #555; margin-bottom: 8px; width: 100%; } /* 字體微調 */
         
         /* 描述區塊樣式 */
         .desc-box {
             background-color: #fff3cd;
             border: 1px solid #ffeeba;
             color: #856404;
-            padding: 10px;
+            padding: 8px;
             border-radius: 5px;
-            font-size: 15px; /* 字體加大 */
-            margin-bottom: 10px;
+            font-size: 14px; /* 從 15px 縮小至 14px */
+            margin-bottom: 8px;
             text-align: left;
             width: 100%;
             flex: 1; 
             overflow-y: auto;
         }
 
-        /* 計時器樣式 */
-        .timer-container { font-size: 20px; font-weight: bold; color: #333; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; width: 95%; max-width: 550px; }
-        .timer-bar-bg { width: 100%; height: 10px; background: #e9ecef; border-radius: 5px; overflow: hidden; }
+        /* 計時器樣式 (寬度限制跟隨 game-area) */
+        .timer-container { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; width: 95%; max-width: 500px; }
+        .timer-bar-bg { width: 100%; height: 8px; background: #e9ecef; border-radius: 5px; overflow: hidden; }
         .timer-bar-fill { height: 100%; background: #28a745; width: 100%; transition: width 1s linear, background 0.3s; }
         .timer-warning { background: #dc3545 !important; }
 
@@ -150,7 +157,7 @@
         .click-hint { 
             color: #fd7e14; 
             font-weight: bold; 
-            font-size: 20px; 
+            font-size: 18px; 
             animation: pulse 1.5s infinite; 
             cursor: pointer; 
             margin: 0;
@@ -160,7 +167,7 @@
         /* 測驗提示文字 */
         #quiz-hint {
             color: #666;
-            font-size: 16px;
+            font-size: 15px;
             margin: 0;
         }
 
@@ -215,7 +222,7 @@
             justify-content: center;
             align-items: center;
             width: 100%;
-            max-width: 550px;
+            max-width: 500px; /* 跟隨 game-area */
             gap: 15px;
         }
 
@@ -536,21 +543,24 @@
             return array;
         }
 
-        // --- 核心遊戲邏輯 ---
+        // --- 核心遊戲邏輯修正：先檢查輸入，計時模式才跳窗 ---
         function checkStart(mode) {
             const nickInput = document.getElementById('nickname');
             nickname = nickInput.value.trim();
             currentMode = mode;
 
+            // 1. 檢查暱稱 (只有排名模式強制)
             if (mode === 'ranked') {
                 if (!nickname) { alert("請先輸入暱稱"); return; }
+                // 顯示秒數選擇彈窗
                 document.getElementById('timer-modal').style.display = 'flex';
             } else {
                 if (!nickname) nickname = "";
-                initializeGame(mode);
+                initializeGame(mode); // 其他模式直接開始
             }
         }
 
+        // 2. 排名模式下，確認秒數後才開始
         function confirmRanked(seconds) {
             timePerQuestion = seconds;
             document.getElementById('timer-modal').style.display = 'none';
@@ -561,6 +571,7 @@
             document.getElementById('timer-modal').style.display = 'none';
         }
 
+        // 3. 實際初始化遊戲 (共用)
         function initializeGame(mode) {
             const selectedType = document.getElementById('category-select').value;
             let pool = [];
@@ -589,6 +600,7 @@
 
             document.getElementById('player-display').innerText = `${modeTitle} - ${nickname} (${selectedType}) - 共 ${finalLimit} 題`;
 
+            // 控制按鈕和計時器顯示
             const submitBtn = document.getElementById('submit-early-btn');
             
             if (mode === 'ranked') {
@@ -612,7 +624,7 @@
 
         function startTimer() {
             clearInterval(timerInterval);
-            timeLeft = timePerQuestion; 
+            timeLeft = timePerQuestion; // 重置為選擇的秒數
             updateTimerDisplay();
             timerInterval = setInterval(() => {
                 timeLeft--;
@@ -627,6 +639,7 @@
         function updateTimerDisplay() {
             document.getElementById('timer-text').innerText = timeLeft;
             const bar = document.getElementById('timer-bar');
+            // 計算比例使用目前的 timePerQuestion
             const percent = (timeLeft / timePerQuestion) * 100;
             bar.style.width = `${percent}%`;
             if (timeLeft <= 10) bar.classList.add('timer-warning');
@@ -647,9 +660,11 @@
             const imgEl = document.getElementById('q-image');
             imgEl.src = q.img;
             
+            // 更新進度條
             document.getElementById('progress-text').innerText = `進度：${currentIdx + 1} / ${questions.length}`;
             
-            const answeredRecord = userRecords[currentIdx]; 
+            // 檢查這一題是否已經回答過 (User Records 中是否有紀錄)
+            const answeredRecord = userRecords[currentIdx]; // 因為是依序的，直接用 index 取
             const card = document.getElementById('flashcard');
             const inputEl = document.getElementById('user-input');
             const resultTitle = document.getElementById('result-title');
@@ -658,13 +673,17 @@
             const quizHint = document.getElementById('quiz-hint');
             const inputArea = document.getElementById('input-area');
             
+            // 按鈕狀態控制
             document.getElementById('prev-btn').disabled = (currentIdx === 0);
             
-            const descText = q.desc ? `特徵：${q.desc}` : ""; 
+            // 設定特徵描述
+            const descText = q.desc ? `特徵：${q.desc}` : ""; // 如果沒描述就留空
             descEl.innerText = descText;
 
+            // === 狀態 1: 已回答過的題目 (回頭檢查) ===
             if (answeredRecord) {
-                card.classList.add('is-flipped'); 
+                // 顯示已回答的狀態
+                card.classList.add('is-flipped'); // 翻到背面
                 inputEl.value = answeredRecord.userAnswer === "(時間到)" ? "" : answeredRecord.userAnswer;
                 inputEl.disabled = true;
 
@@ -677,6 +696,7 @@
                 }
                 document.getElementById('correct-answer').innerText = answeredRecord.correctAnswers;
                 
+                // 停止計時器 (如果是在回看)
                 clearInterval(timerInterval);
                 
                 // ★ 翻面後隱藏提示
@@ -684,7 +704,8 @@
                 quizHint.style.display = 'none';
 
             } else {
-                card.classList.remove('is-flipped'); 
+                // === 狀態 2: 新題目 ===
+                card.classList.remove('is-flipped'); // 轉回正面
                 inputEl.value = "";
                 inputEl.disabled = false;
                 
@@ -695,6 +716,7 @@
                     card.style.cursor = "pointer"; 
                     document.getElementById('result-title').style.display = "none"; 
                     document.getElementById('correct-answer').innerText = q.ans[0];
+                    // 翻卡模式直接顯示描述
                     descEl.innerText = descText; 
                 } else {
                     inputArea.style.display = "block";
@@ -708,6 +730,7 @@
                 }
             }
             
+            // 更新「下一題」按鈕文字
             const nextBtnText = (currentIdx >= questions.length - 1) ? "交卷 🏁" : "下一題 ➡️";
             document.getElementById('card-next-btn').innerText = nextBtnText;
             document.getElementById('skip-btn').innerText = nextBtnText;
@@ -725,8 +748,10 @@
             const card = document.getElementById('flashcard');
             const hint = document.getElementById('flashcard-hint');
             
+            // 翻轉卡片
             const isNowFlipped = card.classList.toggle('is-flipped');
             
+            // ★ 如果翻到背面(看答案)，隱藏提示文字；翻回正面則顯示
             if (isNowFlipped) {
                 hint.style.display = 'none';
             } else {
@@ -747,6 +772,7 @@
             
             const isCorrect = correctVals.some(ans => ans.toLowerCase() === userVal);
             
+            // 寫入紀錄 (避免重複寫入：只有當目前 index 等於紀錄長度時才 push)
             if (userRecords.length === currentIdx) {
                 userRecords.push({
                     question: questions[currentIdx],
@@ -768,6 +794,7 @@
 
             document.getElementById('correct-answer').innerText = correctVals[0];
             
+            // 填入描述
             const q = questions[currentIdx];
             document.getElementById('ans-desc').innerText = q.desc ? `特徵：${q.desc}` : "";
 
@@ -776,13 +803,18 @@
             // ★ 答題翻面後隱藏提示
             document.getElementById('quiz-hint').style.display = 'none';
             
+            // 聚焦在背面的下一題按鈕
             document.getElementById('card-next-btn').focus();
         }
 
         function nextQuestion(event) {
             if (event) event.stopPropagation(); 
             
+            // 如果還沒回答就按下一題 (跳過)
             if (userRecords.length === currentIdx) {
+                 // 強制視為答錯/跳過
+                 // checkAnswer(null, true); // 如果希望跳過算答錯，取消這行註解
+                 // 這裡我們簡單處理：跳過不算分，但記錄一下
                  userRecords.push({
                     question: questions[currentIdx],
                     userAnswer: "(跳過)",
@@ -794,6 +826,7 @@
 
             currentIdx++;
             if (currentIdx < questions.length) {
+                // 如果是新題目，要翻回正面
                 if(currentIdx === userRecords.length) {
                      document.getElementById('flashcard').classList.remove('is-flipped');
                 }
@@ -843,6 +876,7 @@
             userRecords.forEach((record, index) => {
                 const item = document.createElement('div');
                 item.className = record.isCorrect ? "summary-item" : "summary-item item-wrong";
+                // 個人成績單也加上特徵描述
                 const descText = record.question.desc ? `<br><span style="font-size:0.9em; color:#856404; background:#fff3cd; padding:2px 5px; border-radius:3px;">${record.question.desc}</span>` : "";
 
                 item.innerHTML = `
@@ -910,6 +944,7 @@
             }
         }
 
+        // --- 圖鑑功能 (改為條列式表格) ---
         function openGallery() {
             document.getElementById('login-section').classList.remove('active');
             document.getElementById('gallery-section').classList.add('active');
@@ -928,11 +963,14 @@
                 return;
             }
 
+            // 建立表格 HTML
             let html = '<table class="gallery-table"><thead><tr><th style="width:50px">ID</th><th style="width:80px">圖片</th><th>名稱</th><th>特徵/描述</th></tr></thead><tbody>';
             
             items.forEach(item => {
                 const descDisplay = item.desc ? item.desc : "<span style='color:#ccc; font-style:italic;'>暫無描述</span>";
                 
+                // 注意：這裡 onclick 傳遞參數比較複雜，我們改用 function 綁定
+                // 但為了簡單，直接組字串
                 html += `<tr>
                     <td>${item.id}</td>
                     <td><img src="${item.img}" class="gallery-thumb-small" onclick="showOverlay('${item.img}', '${item.ans[0].replace(/'/g, "\\'")}', '${item.desc ? item.desc.replace(/'/g, "\\'") : ""}')"></td>
@@ -961,10 +999,9 @@
             if(e.key === 'Enter') checkAnswer(e); 
         });
         document.getElementById('nickname').addEventListener('keypress', (e) => { 
-            if(e.key === 'Enter') checkStart('ranked'); 
+            if(e.key === 'Enter') checkStart('ranked'); // 改成 checkStart
         });
 
     </script>
 </body>
 </html>
-
