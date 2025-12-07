@@ -678,7 +678,9 @@
         function renderLeaderboard(data) {
             const tbody = document.getElementById('rank-body');
             tbody.innerHTML = "";
-            data.forEach((row, index) => {
+            const top5 = data.slice(0, 5); 
+
+            top5.forEach((row, index) => {
                 let rankClass = "";
                 if(index === 0) rankClass = "rank-1";
                 if(index === 1) rankClass = "rank-2";
@@ -751,4 +753,5 @@
 
     </script>
 </body>
+
 </html>
