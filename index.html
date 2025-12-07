@@ -17,13 +17,13 @@
         .login-box input, .login-box select { padding: 12px; font-size: 18px; width: 80%; border: 2px solid #ddd; border-radius: 5px; margin-bottom: 20px; }
         
         /* 卡片區塊 */
-        .game-area { perspective: 600px; width: 300px; height: 450px; margin-bottom: 10px; cursor: default; position: relative;}
+        .game-area { perspective: 600px; width: 300px; height: 500px; /* 稍微加高以容納描述 */ margin-bottom: 10px; cursor: default; position: relative;}
         .card { width: 100%; height: 100%; position: relative; transition: transform 0.6s; transform-style: preserve-3d; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 15px; }
         .card.is-flipped { transform: rotateY(180deg); }
         .card__face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: white; padding: 20px; box-sizing: border-box; }
         .card__face--front { background: #ffffff; }
         .card__face--back { background: #f8f9fa; transform: rotateY(180deg); text-align: center; }
-        .parasite-img { max-width: 100%; max-height: 200px; object-fit: contain; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        .parasite-img { max-width: 100%; max-height: 180px; object-fit: contain; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; }
         
         /* 輸入與按鈕 */
         input[type="text"] { padding: 10px; width: 80%; margin-bottom: 10px; border: 2px solid #ddd; border-radius: 5px; font-size: 16px; }
@@ -45,10 +45,25 @@
         .btn-restart { background-color: #17a2b8; margin-top: 10px; }
 
         /* 結果顯示 */
-        .result-text { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+        .result-text { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
         .correct { color: #28a745; } .wrong { color: #dc3545; }
-        .answer-detail { font-size: 18px; color: #555; margin-bottom: 20px; }
+        .answer-detail { font-size: 16px; color: #555; margin-bottom: 10px; width: 100%; }
         
+        /* ========== 新增：描述區塊樣式 ========== */
+        .desc-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            margin-bottom: 15px;
+            text-align: left;
+            width: 90%;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
         /* 計時器樣式 */
         .timer-container { font-size: 20px; font-weight: bold; color: #333; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
         .timer-bar-bg { width: 100%; height: 10px; background: #e9ecef; border-radius: 5px; overflow: hidden; }
@@ -79,19 +94,22 @@
         .status-badge.ok { background-color: #d4edda; color: #155724; }
         .status-badge.no { background-color: #f8d7da; color: #721c24; }
 
-        /* 圖鑑模式樣式 */
-        #gallery-section { width: 95%; max-width: 800px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        /* ========== 圖鑑模式改為表格樣式 ========== */
+        #gallery-section { width: 98%; max-width: 900px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 30px; }
         .gallery-filter { margin-bottom: 20px; text-align: center; }
         .gallery-filter select { padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; }
-        .gallery-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
-        .gallery-card { border: 1px solid #eee; border-radius: 8px; overflow: hidden; cursor: pointer; transition: transform 0.2s; background: #fff; }
-        .gallery-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .gallery-img-box { height: 120px; display: flex; align-items: center; justify-content: center; background: #f9f9f9; overflow: hidden; }
-        .gallery-img-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .gallery-name { padding: 10px; font-size: 14px; text-align: center; color: #333; font-weight: bold; border-top: 1px solid #eee; }
+        
+        .gallery-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+        .gallery-table th, .gallery-table td { border: 1px solid #eee; padding: 10px; text-align: left; vertical-align: middle; }
+        .gallery-table th { background-color: #f8f9fa; color: #333; font-weight: bold; position: sticky; top: 0; }
+        .gallery-table tr:hover { background-color: #f1f1f1; }
+        
+        .gallery-thumb-small { width: 60px; height: 60px; object-fit: cover; border-radius: 5px; cursor: pointer; border: 1px solid #ddd; }
+        
         .gallery-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: none; align-items: center; justify-content: center; flex-direction: column; }
-        .gallery-overlay img { max-width: 90%; max-height: 70%; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .gallery-overlay-text { color: white; margin-top: 20px; font-size: 24px; font-weight: bold; text-align: center; background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 50px; }
+        .gallery-overlay img { max-width: 90%; max-height: 60%; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .gallery-overlay-text { color: white; margin-top: 20px; font-size: 20px; font-weight: bold; text-align: center; background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 50px; }
+        .gallery-desc-text { color: #f0f0f0; margin-top: 10px; font-size: 16px; background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 10px;}
         .gallery-close { position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; cursor: pointer; }
 
         /* 排行榜表格 */
@@ -102,14 +120,14 @@
         .rank-2 { color: #c0c0c0; font-weight: bold; }
         .rank-3 { color: #cd7f32; font-weight: bold; }
 
-        /* ========== 修正後的控制區 (包含 上一題 / 提早交卷 / 下一題) ========== */
+        /* 控制區 */
         .controls {
             margin-top: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
             width: 100%;
-            gap: 15px; /* 按鈕之間的距離 */
+            gap: 15px;
         }
 
         .nav-btn {
@@ -179,7 +197,7 @@
         <div class="game-area">
             <div class="card" id="flashcard" onclick="onCardClick()">
                 <div class="card__face card__face--front">
-                    <div id="flashcard-hint" class="click-hint" style="display:none;">  </div>
+                    <div id="flashcard-hint" class="click-hint" style="display:none;"> </div>
                     <div id="quiz-hint" style="margin-bottom:10px; color:#666;">請輸入正確名稱：</div>
                     <img src="" alt="題目圖片" class="parasite-img" id="q-image">
                     <div id="input-area">
@@ -189,10 +207,15 @@
                 </div>
                 <div class="card__face card__face--back">
                     <div id="result-title" class="result-text"></div>
+                    
                     <div class="answer-detail">
                         正確答案：<br>
-                        <strong id="correct-answer" style="color: #333; font-size: 22px;"></strong>
+                        <strong id="correct-answer" style="color: #333; font-size: 20px;"></strong>
                     </div>
+                    
+                    <div id="ans-desc" class="desc-box">
+                        </div>
+
                     <button onclick="nextQuestion(event)" id="card-next-btn">下一題 ➡️</button>
                 </div>
             </div>
@@ -234,6 +257,7 @@
 
     <div id="gallery-section" class="section">
         <h3 style="text-align:center;">📖 寄生蟲圖鑑大全</h3>
+        <p style="text-align:center; color:#666; font-size:0.9em;">點擊圖片可放大檢視</p>
         <div class="gallery-filter">
             <select id="gallery-filter-select" onchange="filterGallery()">
                 <option value="all">全部顯示</option>
@@ -243,8 +267,9 @@
                 <option value="原蟲">原蟲</option>
             </select>
         </div>
-        <div id="gallery-list" class="gallery-list">
-            </div>
+        
+        <div id="gallery-container"></div>
+
         <div style="text-align: center; margin-top: 30px;">
             <button class="btn-restart" onclick="location.reload()">回到首頁 🏠</button>
         </div>
@@ -254,6 +279,7 @@
         <span class="gallery-close">&times;</span>
         <img id="overlay-img" src="">
         <div id="overlay-text" class="gallery-overlay-text"></div>
+        <div id="overlay-desc" class="gallery-desc-text"></div>
         <div style="color:white; margin-top:10px;">(點擊任意處關閉)</div>
     </div>
 
@@ -263,75 +289,75 @@
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyxzdY2x1ZqsqhE-j_xgNUN0y297YaP4IbMyCb35zsJ7FAE61RGczbbSOC1u5GUi3ykmw/exec";
         const TIME_PER_QUESTION = 40; 
         
-        // 3. 題目資料庫
+        // 3. 題目資料庫 (已加入 desc 欄位)
         const database = [
-            { id: 1, type: '線蟲', img: "images/1.jpg", ans: ["Bursa copulatory of Angiostrongylus cantonensis", "male of Angiostrongylus cantonensis", "Spicule of Angiostrongylus cantonensis"] },
-            { id: 2, type: '線蟲', img: "images/2.jpg", ans: ["Female of Angiostrongylus cantonensis", "Posterior portion of Angiostrongylus cantonensis"] },
-            { id: 3, type: '線蟲', img: "images/3.jpg", ans: ["anterior end of anisakis spp."] },
-            { id: 4, type: '線蟲', img: "images/4.jpg", ans: ["terminal spine of anisakis spp."] },
-            { id: 5, type: '線蟲', img: "images/5.jpg", ans: ["Egg of Trichuris trichiura"] },
-            { id: 6, type: '線蟲', img: "images/6.jpg", ans: ["Cyst of Trichinella Spiralis"] },
-            { id: 7, type: '線蟲', img: "images/7.jpg", ans: ["adult male of trichiris trichiura"] },
-            { id: 8, type: '線蟲', img: "images/8.jpg", ans: ["adult female of trichiris trichiura"] },
-            { id: 9, type: '線蟲', img: "images/9.jpg", ans: ["Egg of Enterobius vermicularis"] },
-            { id: 10, type: '線蟲', img: "images/10.jpg", ans: ["Embryonated egg Egg of Enterobius vermicularis"] },
-            { id: 11, type: '線蟲', img: "images/11.jpg", ans: ["female of enterobius vermicularis", "female adult of enterobius vermicularis", "adult female of enterobius vermicularis"] },
-            { id: 12, type: '線蟲', img: "images/12.jpg", ans: ["fertilized egg of ascaris lumbricoides"] },
-            { id: 13, type: '線蟲', img: "images/13.jpg", ans: ["unfertilized egg of ascaris lumbricoides"] },
-            { id: 14, type: '線蟲', img: "images/14.jpg", ans: ["embryonated egg of ascaris lumbricoides"] },
-            { id: 15, type: '線蟲', img: "images/15.jpg", ans: ["embryonated egg of hookworm"] },
-            { id: 16, type: '線蟲', img: "images/16.jpg", ans: ["egg of hookworm"] },
-            { id: 17, type: '線蟲', img: "images/17.jpg", ans: ["Buccal capsule of Ancylostoma duodenale"] },
-            { id: 18, type: '線蟲', img: "images/18.jpg", ans: ["Buccal capsule of Necator americanus"] },
-            { id: 19, type: '線蟲', img: "images/19.jpg", ans: ["Filariform larva of strongyloides stercoralis"] },
-            { id: 20, type: '線蟲', img: "images/20.jpg", ans: ["Filariform Larva of Necator americanus"] },
-            { id: 21, type: '線蟲', img: "images/21.jpg", ans: ["Filariform Larva of Ancylostoma duodenale"] },
-            { id: 22, type: '線蟲', img: "images/22.jpg", ans: ["microfilaria of wuchereria bancrofti"] },
-            { id: 23, type: '線蟲', img: "images/23.jpg", ans: ["microfilaria of brugia malayi"] },
-            { id: 24, type: '吸蟲', img: "images/24.jpg", ans: ["Egg of Fasciolopsis Buski"] },
-            { id: 25, type: '吸蟲', img: "images/25.jpg", ans: ["Adult worm of Fasciolopsis buski"] },
-            { id: 26, type: '吸蟲', img: "images/26.jpg", ans: ["Adult worm of Metagonimus Yokogawai"] },
-            { id: 27, type: '吸蟲', img: "images/27.jpg", ans: ["Adult worm of Echinostoma revolutum"] },
-            { id: 28, type: '吸蟲', img: "images/28.jpg", ans: ["Egg of Paragonimus westermani"] },
-            { id: 29, type: '吸蟲', img: "images/29.jpg", ans: ["Adult worm of Paragonimus westermani"] },
-            { id: 30, type: '吸蟲', img: "images/30.jpg", ans: ["Section of liver infected with Paragonimus westermani"] },
-            { id: 31, type: '吸蟲', img: "images/31.jpg", ans: ["Adult worm of Fasciola hepatica"] },
-            { id: 32, type: '吸蟲', img: "images/32.jpg", ans: ["Adult worm of Clonorchis sinensis"] },
-            { id: 33, type: '吸蟲', img: "images/33.jpg", ans: ["Egg of Clonorchis sinensis"] },
-            { id: 34, type: '吸蟲', img: "images/34.jpg", ans: ["Egg of Schistosoma haematobium"] },
-            { id: 35, type: '吸蟲', img: "images/35.jpg", ans: ["Egg of Schistosoma mansoni"] },
-            { id: 36, type: '吸蟲', img: "images/36.jpg", ans: ["Egg of Schistosoma japonicum"] },
-            { id: 37, type: '吸蟲', img: "images/37.jpg", ans: ["Adult male of Schistosoma mansoni"] },
-            { id: 38, type: '吸蟲', img: "images/38.jpg", ans: ["Adult female of Schistosoma mansoni"] },
-{ id: 39, type: '原蟲', img: "images/39.jpg", ans: ["Cyst of Entamoeba coli", "Cyst form of Entamoeba coli"] },
-    { id: 41, type: '原蟲', img: "images/41.jpg", ans: ["Cyst of Endolimax nana", "Cyst form of Endolimax nana"] },
-    { id: 42, type: '原蟲', img: "images/42.jpg", ans: ["Cyst of Entamoeba histolytica", "Cyst form of Entamoeba histolytica"] },
-    { id: 43, type: '原蟲', img: "images/43.jpg", ans: ["Trophozoite of Entamoeba histolytica", "Trophozoite form of Entamoeba histolytica"] },
-    { id: 44, type: '原蟲', img: "images/44.jpg", ans: ["Cyst of Iodamoeba butschlii", "Cyst form of Iodamoeba butschlii"] },
-    { id: 45, type: '原蟲', img: "images/45.jpg", ans: ["Cyst of Balantidium coli", "Cyst form of Balantidium coli"] },
-    { id: 46, type: '原蟲', img: "images/46.jpg", ans: ["Trophozoite of Balantidium coli", "Trophozoite form of Balantidium coli"] },
-    { id: 47, type: '原蟲', img: "images/47.jpg", ans: ["Cyst of Giardia lamblia", "Cyst form of Giardia lamblia"] },
-    { id: 48, type: '原蟲', img: "images/48.jpg", ans: ["Trophozoite of Giardia lamblia", "Trophozoite form of Giardia lamblia"] },
-    { id: 49, type: '原蟲', img: "images/49.jpg", ans: ["Trophozoite of Trichomonas vaginalis", "Trophozoite form of Trichomonas vaginalis"] },
-    { id: 50, type: '原蟲', img: "images/50.jpg", ans: ["Amastigote of Leishmania spp.", "Amastigote form of Leishmania spp."] },
-    { id: 51, type: '原蟲', img: "images/51.jpg", ans: ["Promastigote of Leishmania spp.", "Promastigote form of Leishmania spp."] },
-    { id: 52, type: '原蟲', img: "images/52.jpg", ans: ["Trypomastigote of Trypanosoma spp.", "Trypomastigote form of Trypanosoma spp."] },
-    { id: 53, type: '原蟲', img: "images/53.jpg", ans: ["Early trophozoite of Plasmodium vivax", "Early trophozoite form of Plasmodium vivax"] },
-    { id: 54, type: '原蟲', img: "images/54.jpg", ans: ["Mature trophozoite of Plasmodium vivax", "Mature trophozoite form of Plasmodium vivax"] },
-    { id: 55, type: '原蟲', img: "images/55.jpg", ans: ["Early trophozoite of Plasmodium falciparum", "Early trophozoite form of Plasmodium falciparum"] },
-    { id: 56, type: '原蟲', img: "images/56.jpg", ans: ["Trophozoite of Toxoplasma gondii", "Trophozoite form of Toxoplasma gondii"] },
-{ id: 57, type: '絛蟲', img: "images/57.jpg", ans: ["Egg of Diphyllobothrium latum"] },
-    { id: 58, type: '絛蟲', img: "images/58.jpg", ans: ["Gravid proglottid of Diphyllobothrium latum"] },
-    { id: 59, type: '絛蟲', img: "images/59.jpg", ans: ["Egg of Taenia spp."] },
-    { id: 60, type: '絛蟲', img: "images/60.jpg", ans: ["Gravid proglottid of Taenia solium"] },
-    { id: 61, type: '絛蟲', img: "images/61.jpg", ans: ["Gravid proglottid of Taenia saginata"] },
-    { id: 62, type: '絛蟲', img: "images/62.jpg", ans: ["Scolex of Taenia solium"] },
-    { id: 63, type: '絛蟲', img: "images/63.jpg", ans: ["Egg of Hymenolepis diminuta"] },
-    { id: 64, type: '絛蟲', img: "images/64.jpg", ans: ["Egg of Hymenolepis nana"] },
-    { id: 65, type: '絛蟲', img: "images/65.jpg", ans: ["Egg of Dipylidium caninum"] },
-    { id: 66, type: '絛蟲', img: "images/66.jpg", ans: ["Proglottid of Dipylidium caninum"] },
-    { id: 67, type: '絛蟲', img: "images/67.jpg", ans: ["Hydatid cyst of Echinococcus granulosus"] },
-    { id: 68, type: '絛蟲', img: "images/68.jpg", ans: ["Protoscolex of Echinococcus granulosus"] }
+            { id: 1, type: '線蟲', img: "images/1.jpg", ans: ["Bursa copulatory of Angiostrongylus cantonensis", "male of Angiostrongylus cantonensis", "Spicule of Angiostrongylus cantonensis"], desc: "" },
+            { id: 2, type: '線蟲', img: "images/2.jpg", ans: ["Female of Angiostrongylus cantonensis", "Posterior portion of Angiostrongylus cantonensis"], desc: "" },
+            { id: 3, type: '線蟲', img: "images/3.jpg", ans: ["anterior end of anisakis spp."], desc: "" },
+            { id: 4, type: '線蟲', img: "images/4.jpg", ans: ["terminal spine of anisakis spp."], desc: "" },
+            { id: 5, type: '線蟲', img: "images/5.jpg", ans: ["Egg of Trichuris trichiura"], desc: "" },
+            { id: 6, type: '線蟲', img: "images/6.jpg", ans: ["Cyst of Trichinella Spiralis"], desc: "" },
+            { id: 7, type: '線蟲', img: "images/7.jpg", ans: ["adult male of trichiris trichiura"], desc: "" },
+            { id: 8, type: '線蟲', img: "images/8.jpg", ans: ["adult female of trichiris trichiura"], desc: "" },
+            { id: 9, type: '線蟲', img: "images/9.jpg", ans: ["Egg of Enterobius vermicularis"], desc: "" },
+            { id: 10, type: '線蟲', img: "images/10.jpg", ans: ["Embryonated egg Egg of Enterobius vermicularis"], desc: "" },
+            { id: 11, type: '線蟲', img: "images/11.jpg", ans: ["female of enterobius vermicularis", "female adult of enterobius vermicularis", "adult female of enterobius vermicularis"], desc: "" },
+            { id: 12, type: '線蟲', img: "images/12.jpg", ans: ["fertilized egg of ascaris lumbricoides"], desc: "" },
+            { id: 13, type: '線蟲', img: "images/13.jpg", ans: ["unfertilized egg of ascaris lumbricoides"], desc: "" },
+            { id: 14, type: '線蟲', img: "images/14.jpg", ans: ["embryonated egg of ascaris lumbricoides"], desc: "" },
+            { id: 15, type: '線蟲', img: "images/15.jpg", ans: ["embryonated egg of hookworm"], desc: "" },
+            { id: 16, type: '線蟲', img: "images/16.jpg", ans: ["egg of hookworm"], desc: "" },
+            { id: 17, type: '線蟲', img: "images/17.jpg", ans: ["Buccal capsule of Ancylostoma duodenale"], desc: "" },
+            { id: 18, type: '線蟲', img: "images/18.jpg", ans: ["Buccal capsule of Necator americanus"], desc: "" },
+            { id: 19, type: '線蟲', img: "images/19.jpg", ans: ["Filariform larva of strongyloides stercoralis"], desc: "" },
+            { id: 20, type: '線蟲', img: "images/20.jpg", ans: ["Filariform Larva of Necator americanus"], desc: "" },
+            { id: 21, type: '線蟲', img: "images/21.jpg", ans: ["Filariform Larva of Ancylostoma duodenale"], desc: "" },
+            { id: 22, type: '線蟲', img: "images/22.jpg", ans: ["microfilaria of wuchereria bancrofti"], desc: "" },
+            { id: 23, type: '線蟲', img: "images/23.jpg", ans: ["microfilaria of brugia malayi"], desc: "" },
+            { id: 24, type: '吸蟲', img: "images/24.jpg", ans: ["Egg of Fasciolopsis Buski"], desc: "" },
+            { id: 25, type: '吸蟲', img: "images/25.jpg", ans: ["Adult worm of Fasciolopsis buski"], desc: "" },
+            { id: 26, type: '吸蟲', img: "images/26.jpg", ans: ["Adult worm of Metagonimus Yokogawai"], desc: "" },
+            { id: 27, type: '吸蟲', img: "images/27.jpg", ans: ["Adult worm of Echinostoma revolutum"], desc: "" },
+            { id: 28, type: '吸蟲', img: "images/28.jpg", ans: ["Egg of Paragonimus westermani"], desc: "" },
+            { id: 29, type: '吸蟲', img: "images/29.jpg", ans: ["Adult worm of Paragonimus westermani"], desc: "" },
+            { id: 30, type: '吸蟲', img: "images/30.jpg", ans: ["Section of liver infected with Paragonimus westermani"], desc: "" },
+            { id: 31, type: '吸蟲', img: "images/31.jpg", ans: ["Adult worm of Fasciola hepatica"], desc: "" },
+            { id: 32, type: '吸蟲', img: "images/32.jpg", ans: ["Adult worm of Clonorchis sinensis"], desc: "" },
+            { id: 33, type: '吸蟲', img: "images/33.jpg", ans: ["Egg of Clonorchis sinensis"], desc: "" },
+            { id: 34, type: '吸蟲', img: "images/34.jpg", ans: ["Egg of Schistosoma haematobium"], desc: "" },
+            { id: 35, type: '吸蟲', img: "images/35.jpg", ans: ["Egg of Schistosoma mansoni"], desc: "" },
+            { id: 36, type: '吸蟲', img: "images/36.jpg", ans: ["Egg of Schistosoma japonicum"], desc: "" },
+            { id: 37, type: '吸蟲', img: "images/37.jpg", ans: ["Adult male of Schistosoma mansoni"], desc: "" },
+            { id: 38, type: '吸蟲', img: "images/38.jpg", ans: ["Adult female of Schistosoma mansoni"], desc: "" },
+            { id: 39, type: '原蟲', img: "images/39.jpg", ans: ["Cyst of Entamoeba coli", "Cyst form of Entamoeba coli"], desc: "" },
+            { id: 41, type: '原蟲', img: "images/41.jpg", ans: ["Cyst of Endolimax nana", "Cyst form of Endolimax nana"], desc: "" },
+            { id: 42, type: '原蟲', img: "images/42.jpg", ans: ["Cyst of Entamoeba histolytica", "Cyst form of Entamoeba histolytica"], desc: "" },
+            { id: 43, type: '原蟲', img: "images/43.jpg", ans: ["Trophozoite of Entamoeba histolytica", "Trophozoite form of Entamoeba histolytica"], desc: "" },
+            { id: 44, type: '原蟲', img: "images/44.jpg", ans: ["Cyst of Iodamoeba butschlii", "Cyst form of Iodamoeba butschlii"], desc: "" },
+            { id: 45, type: '原蟲', img: "images/45.jpg", ans: ["Cyst of Balantidium coli", "Cyst form of Balantidium coli"], desc: "" },
+            { id: 46, type: '原蟲', img: "images/46.jpg", ans: ["Trophozoite of Balantidium coli", "Trophozoite form of Balantidium coli"], desc: "" },
+            { id: 47, type: '原蟲', img: "images/47.jpg", ans: ["Cyst of Giardia lamblia", "Cyst form of Giardia lamblia"], desc: "" },
+            { id: 48, type: '原蟲', img: "images/48.jpg", ans: ["Trophozoite of Giardia lamblia", "Trophozoite form of Giardia lamblia"], desc: "" },
+            { id: 49, type: '原蟲', img: "images/49.jpg", ans: ["Trophozoite of Trichomonas vaginalis", "Trophozoite form of Trichomonas vaginalis"], desc: "" },
+            { id: 50, type: '原蟲', img: "images/50.jpg", ans: ["Amastigote of Leishmania spp.", "Amastigote form of Leishmania spp."], desc: "" },
+            { id: 51, type: '原蟲', img: "images/51.jpg", ans: ["Promastigote of Leishmania spp.", "Promastigote form of Leishmania spp."], desc: "" },
+            { id: 52, type: '原蟲', img: "images/52.jpg", ans: ["Trypomastigote of Trypanosoma spp.", "Trypomastigote form of Trypanosoma spp."], desc: "" },
+            { id: 53, type: '原蟲', img: "images/53.jpg", ans: ["Early trophozoite of Plasmodium vivax", "Early trophozoite form of Plasmodium vivax"], desc: "" },
+            { id: 54, type: '原蟲', img: "images/54.jpg", ans: ["Mature trophozoite of Plasmodium vivax", "Mature trophozoite form of Plasmodium vivax"], desc: "" },
+            { id: 55, type: '原蟲', img: "images/55.jpg", ans: ["Early trophozoite of Plasmodium falciparum", "Early trophozoite form of Plasmodium falciparum"], desc: "" },
+            { id: 56, type: '原蟲', img: "images/56.jpg", ans: ["Trophozoite of Toxoplasma gondii", "Trophozoite form of Toxoplasma gondii"], desc: "" },
+            { id: 57, type: '絛蟲', img: "images/57.jpg", ans: ["Egg of Diphyllobothrium latum"], desc: "" },
+            { id: 58, type: '絛蟲', img: "images/58.jpg", ans: ["Gravid proglottid of Diphyllobothrium latum"], desc: "" },
+            { id: 59, type: '絛蟲', img: "images/59.jpg", ans: ["Egg of Taenia spp."], desc: "" },
+            { id: 60, type: '絛蟲', img: "images/60.jpg", ans: ["Gravid proglottid of Taenia solium"], desc: "" },
+            { id: 61, type: '絛蟲', img: "images/61.jpg", ans: ["Gravid proglottid of Taenia saginata"], desc: "" },
+            { id: 62, type: '絛蟲', img: "images/62.jpg", ans: ["Scolex of Taenia solium"], desc: "" },
+            { id: 63, type: '絛蟲', img: "images/63.jpg", ans: ["Egg of Hymenolepis diminuta"], desc: "" },
+            { id: 64, type: '絛蟲', img: "images/64.jpg", ans: ["Egg of Hymenolepis nana"], desc: "" },
+            { id: 65, type: '絛蟲', img: "images/65.jpg", ans: ["Egg of Dipylidium caninum"], desc: "" },
+            { id: 66, type: '絛蟲', img: "images/66.jpg", ans: ["Proglottid of Dipylidium caninum"], desc: "" },
+            { id: 67, type: '絛蟲', img: "images/67.jpg", ans: ["Hydatid cyst of Echinococcus granulosus"], desc: "" },
+            { id: 68, type: '絛蟲', img: "images/68.jpg", ans: ["Protoscolex of Echinococcus granulosus"], desc: "" }
         ];
         // ==========================================
 
@@ -461,10 +487,15 @@
             const card = document.getElementById('flashcard');
             const inputEl = document.getElementById('user-input');
             const resultTitle = document.getElementById('result-title');
+            const descEl = document.getElementById('ans-desc');
             
             // 按鈕狀態控制
             document.getElementById('prev-btn').disabled = (currentIdx === 0);
             
+            // 設定特徵描述
+            const descText = q.desc ? `特徵：${q.desc}` : ""; // 如果沒描述就留空
+            descEl.innerText = descText;
+
             // === 狀態 1: 已回答過的題目 (回頭檢查) ===
             if (answeredRecord) {
                 // 顯示已回答的狀態
@@ -502,6 +533,8 @@
                     card.style.cursor = "pointer"; 
                     document.getElementById('result-title').style.display = "none"; 
                     document.getElementById('correct-answer').innerText = q.ans[0];
+                    // 翻卡模式直接顯示描述
+                    descEl.innerText = descText; 
                 } else {
                     inputArea.style.display = "block";
                     quizHint.style.display = "block";
@@ -567,6 +600,11 @@
             }
 
             document.getElementById('correct-answer').innerText = correctVals[0];
+            
+            // 填入描述
+            const q = questions[currentIdx];
+            document.getElementById('ans-desc').innerText = q.desc ? `特徵：${q.desc}` : "";
+
             document.getElementById('flashcard').classList.add('is-flipped');
             
             // 聚焦在背面的下一題按鈕
@@ -642,10 +680,15 @@
             userRecords.forEach((record, index) => {
                 const item = document.createElement('div');
                 item.className = record.isCorrect ? "summary-item" : "summary-item item-wrong";
+                // 個人成績單也加上特徵描述
+                const descText = record.question.desc ? `<br><span style="font-size:0.9em; color:#856404; background:#fff3cd; padding:2px 5px; border-radius:3px;">${record.question.desc}</span>` : "";
+
                 item.innerHTML = `
                     <img src="${record.question.img}" class="summary-thumb" onclick="window.open(this.src)">
                     <div class="summary-info">
-                        <strong>第 ${index + 1} 題：${record.correctAnswers}</strong><br>
+                        <strong>第 ${index + 1} 題：${record.correctAnswers}</strong>
+                        ${descText}
+                        <br>
                         <span style="color:#666">你的回答：${record.userAnswer || "(空白)"}</span>
                     </div>
                     <div class="status-badge ${record.isCorrect ? 'ok' : 'no'}">${record.isCorrect ? '正確' : '錯誤'}</div>
@@ -678,6 +721,7 @@
         function renderLeaderboard(data) {
             const tbody = document.getElementById('rank-body');
             tbody.innerHTML = "";
+            
             const top5 = data.slice(0, 5); 
 
             top5.forEach((row, index) => {
@@ -685,6 +729,7 @@
                 if(index === 0) rankClass = "rank-1";
                 if(index === 1) rankClass = "rank-2";
                 if(index === 2) rankClass = "rank-3";
+                
                 const tr = document.createElement('tr');
                 tr.innerHTML = `<td class="${rankClass}">#${index + 1}</td><td style="font-weight:bold">${row.name}</td><td>${row.score}</td>`;
                 tbody.appendChild(tr);
@@ -703,7 +748,7 @@
             }
         }
 
-        // --- 圖鑑功能 ---
+        // --- 圖鑑功能 (改為條列式表格) ---
         function openGallery() {
             document.getElementById('login-section').classList.remove('active');
             document.getElementById('gallery-section').classList.add('active');
@@ -712,31 +757,41 @@
 
         function filterGallery() {
             const type = document.getElementById('gallery-filter-select').value;
-            const container = document.getElementById('gallery-list');
+            const container = document.getElementById('gallery-container');
             container.innerHTML = "";
 
             let items = (type === 'all') ? database : database.filter(d => d.type === type);
 
+            if(items.length === 0) {
+                container.innerHTML = "<p style='text-align:center'>無資料</p>";
+                return;
+            }
+
+            // 建立表格 HTML
+            let html = '<table class="gallery-table"><thead><tr><th style="width:50px">ID</th><th style="width:80px">圖片</th><th>名稱</th><th>特徵/描述</th></tr></thead><tbody>';
+            
             items.forEach(item => {
-                const card = document.createElement('div');
-                card.className = "gallery-card";
-                card.onclick = () => showOverlay(item);
+                const descDisplay = item.desc ? item.desc : "<span style='color:#ccc; font-style:italic;'>暫無描述</span>";
                 
-                // 顯示圖片和第一個答案
-                card.innerHTML = `
-                    <div class="gallery-img-box">
-                        <img src="${item.img}" loading="lazy">
-                    </div>
-                    <div class="gallery-name">${item.ans[0]}</div>
-                `;
-                container.appendChild(card);
+                // 注意：這裡 onclick 傳遞參數比較複雜，我們改用 function 綁定
+                // 但為了簡單，直接組字串
+                html += `<tr>
+                    <td>${item.id}</td>
+                    <td><img src="${item.img}" class="gallery-thumb-small" onclick="showOverlay('${item.img}', '${item.ans[0].replace(/'/g, "\\'")}', '${item.desc ? item.desc.replace(/'/g, "\\'") : ""}')"></td>
+                    <td>${item.ans[0]}</td>
+                    <td>${descDisplay}</td>
+                </tr>`;
             });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
         }
 
-        function showOverlay(item) {
+        function showOverlay(imgSrc, title, desc) {
             const overlay = document.getElementById('gallery-overlay');
-            document.getElementById('overlay-img').src = item.img;
-            document.getElementById('overlay-text').innerText = item.ans[0];
+            document.getElementById('overlay-img').src = imgSrc;
+            document.getElementById('overlay-text').innerText = title;
+            document.getElementById('overlay-desc').innerText = desc ? `特徵：${desc}` : "";
             overlay.style.display = 'flex';
         }
 
@@ -753,5 +808,4 @@
 
     </script>
 </body>
-
 </html>
