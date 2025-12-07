@@ -17,7 +17,7 @@
         .login-box input, .login-box select { padding: 12px; font-size: 18px; width: 80%; border: 2px solid #ddd; border-radius: 5px; margin-bottom: 20px; }
         
         /* 卡片區塊 */
-        .game-area { perspective: 600px; width: 300px; height: 500px; /* 稍微加高以容納描述 */ margin-bottom: 10px; cursor: default; position: relative;}
+        .game-area { perspective: 600px; width: 300px; height: 500px; margin-bottom: 10px; cursor: default; position: relative;}
         .card { width: 100%; height: 100%; position: relative; transition: transform 0.6s; transform-style: preserve-3d; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 15px; }
         .card.is-flipped { transform: rotateY(180deg); }
         .card__face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: white; padding: 20px; box-sizing: border-box; }
@@ -49,7 +49,7 @@
         .correct { color: #28a745; } .wrong { color: #dc3545; }
         .answer-detail { font-size: 16px; color: #555; margin-bottom: 10px; width: 100%; }
         
-        /* ========== 新增：描述區塊樣式 ========== */
+        /* 描述區塊樣式 */
         .desc-box {
             background-color: #fff3cd;
             border: 1px solid #ffeeba;
@@ -94,7 +94,7 @@
         .status-badge.ok { background-color: #d4edda; color: #155724; }
         .status-badge.no { background-color: #f8d7da; color: #721c24; }
 
-        /* ========== 圖鑑模式改為表格樣式 ========== */
+        /* 圖鑑模式表格樣式 */
         #gallery-section { width: 98%; max-width: 900px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 30px; }
         .gallery-filter { margin-bottom: 20px; text-align: center; }
         .gallery-filter select { padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; }
@@ -150,6 +150,53 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         #submit-early-btn:hover { background-color: #b91c1c; }
+
+        /* ========== 新增：秒數選擇彈窗樣式 ========== */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 2000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.5); 
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            width: 90%;
+            max-width: 300px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .timer-btn {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 12px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .btn-40s { background-color: #28a745; }
+        .btn-40s:hover { background-color: #218838; }
+        
+        .btn-50s { background-color: #17a2b8; }
+        .btn-50s:hover { background-color: #138496; }
+
+        .btn-cancel { background-color: #6c757d; }
+        .btn-cancel:hover { background-color: #5a6268; }
+
     </style>
 </head>
 <body>
@@ -172,15 +219,24 @@
 
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
 
-            <p>輸入暱稱</p>
+            <p>輸入暱稱(計時才需要)</p>
             <input type="text" id="nickname" placeholder="...." maxlength="10">
             
             <div class="btn-group">
-                <button class="btn-start" onclick="startGame('ranked')">🏆 計時 40s</button>
-                <button class="btn-practice" onclick="startGame('practice')">📝 練習模式 </button>
-                <button class="btn-flashcard" onclick="startGame('flashcard')">🃏 翻卡記憶 </button>
+                <button class="btn-start" onclick="checkStart('ranked')">🏆 計時挑戰</button>
+                <button class="btn-practice" onclick="checkStart('practice')">📝 練習模式 </button>
+                <button class="btn-flashcard" onclick="checkStart('flashcard')">🃏 翻卡記憶 </button>
                 <button class="btn-gallery" onclick="openGallery()">📖 瀏覽圖鑑</button>
             </div>
+        </div>
+    </div>
+
+    <div id="timer-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">⏱️ 選擇挑戰秒數</h3>
+            <button class="timer-btn btn-40s" onclick="confirmRanked(40)">40 秒 (標準)</button>
+            <button class="timer-btn btn-50s" onclick="confirmRanked(50)">50 秒 (玻片被動到了)</button>
+            <button class="timer-btn btn-cancel" onclick="closeTimerModal()">取消</button>
         </div>
     </div>
 
@@ -255,7 +311,7 @@
         </div>
     </div>
 
-      <div id="gallery-section" class="section">
+    <div id="gallery-section" class="section">
         <h3 style="text-align:center;">📖 寄生蟲圖鑑大全</h3>
         
         <div style="text-align: center; margin-bottom: 15px;">
@@ -289,7 +345,9 @@
         // ==========================================
         // 🔧 設定區 🔧
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyxzdY2x1ZqsqhE-j_xgNUN0y297YaP4IbMyCb35zsJ7FAE61RGczbbSOC1u5GUi3ykmw/exec";
-        const TIME_PER_QUESTION = 40; 
+        
+        // 變數化時間設定
+        let timePerQuestion = 40; 
         
         // 3. 題目資料庫 (已加入 desc 欄位)
         const database = [
@@ -370,7 +428,7 @@
         let nickname = "";
         let currentMode = "ranked"; 
         let timerInterval;
-        let timeLeft = TIME_PER_QUESTION;
+        let timeLeft = timePerQuestion;
 
         function shuffle(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -380,20 +438,36 @@
             return array;
         }
 
-        // --- 核心遊戲邏輯 ---
-        function startGame(mode) {
+        // --- 核心遊戲邏輯修正：先檢查輸入，計時模式才跳窗 ---
+        function checkStart(mode) {
             const nickInput = document.getElementById('nickname');
             nickname = nickInput.value.trim();
             currentMode = mode;
 
+            // 1. 檢查暱稱 (只有排名模式強制)
             if (mode === 'ranked') {
                 if (!nickname) { alert("請先輸入暱稱"); return; }
-            } else if (mode === 'practice') {
+                // 顯示秒數選擇彈窗
+                document.getElementById('timer-modal').style.display = 'flex';
+            } else {
                 if (!nickname) nickname = "";
-            } else if (mode === 'flashcard') {
-                if (!nickname) nickname = "";
+                initializeGame(mode); // 其他模式直接開始
             }
+        }
 
+        // 2. 排名模式下，確認秒數後才開始
+        function confirmRanked(seconds) {
+            timePerQuestion = seconds;
+            document.getElementById('timer-modal').style.display = 'none';
+            initializeGame('ranked');
+        }
+
+        function closeTimerModal() {
+            document.getElementById('timer-modal').style.display = 'none';
+        }
+
+        // 3. 實際初始化遊戲 (共用)
+        function initializeGame(mode) {
             const selectedType = document.getElementById('category-select').value;
             let pool = [];
             if (selectedType === 'all') {
@@ -423,7 +497,6 @@
 
             // 控制按鈕和計時器顯示
             const submitBtn = document.getElementById('submit-early-btn');
-            const skipBtn = document.getElementById('skip-btn');
             
             if (mode === 'ranked') {
                 document.getElementById('timer-area').style.display = 'flex';
@@ -446,7 +519,7 @@
 
         function startTimer() {
             clearInterval(timerInterval);
-            timeLeft = TIME_PER_QUESTION;
+            timeLeft = timePerQuestion; // 重置為選擇的秒數
             updateTimerDisplay();
             timerInterval = setInterval(() => {
                 timeLeft--;
@@ -461,7 +534,8 @@
         function updateTimerDisplay() {
             document.getElementById('timer-text').innerText = timeLeft;
             const bar = document.getElementById('timer-bar');
-            const percent = (timeLeft / TIME_PER_QUESTION) * 100;
+            // 計算比例使用目前的 timePerQuestion
+            const percent = (timeLeft / timePerQuestion) * 100;
             bar.style.width = `${percent}%`;
             if (timeLeft <= 10) bar.classList.add('timer-warning');
             else bar.classList.remove('timer-warning');
@@ -805,12 +879,9 @@
             if(e.key === 'Enter') checkAnswer(e); 
         });
         document.getElementById('nickname').addEventListener('keypress', (e) => { 
-            if(e.key === 'Enter') startGame('ranked'); 
+            if(e.key === 'Enter') checkStart('ranked'); // 改成 checkStart
         });
 
     </script>
 </body>
 </html>
-
-
-
