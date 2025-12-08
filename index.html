@@ -540,7 +540,7 @@
         let timerInterval;
         let timeLeft = timePerQuestion;
 
-        // 隨機洗牌函式 (Fisher-Yates Shuffle)
+        // 隨機洗牌函式
         function shuffle(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -651,7 +651,8 @@
             let inputLimit = parseInt(document.getElementById('question-limit').value);
             if (isNaN(inputLimit) || inputLimit < 1) inputLimit = 10;
             
-            const finalLimit = inputLimit; 
+            // ★ 關鍵修正：取最小值。如果輸入 99 但只有 68 題，就只會出 68 題
+            const finalLimit = Math.min(inputLimit, fullPool.length);
 
             document.getElementById('login-section').classList.remove('active');
             document.getElementById('game-section').classList.add('active');
@@ -678,17 +679,8 @@
             }
 
             // 使用不重複抽題邏輯
-            if (fullPool.length < finalLimit) {
-                 // 題目不夠時，直接重複使用完整題庫直到滿足數量
-                 let extendedPool = [];
-                 while(extendedPool.length < finalLimit) {
-                     extendedPool = extendedPool.concat(shuffle([...fullPool]));
-                 }
-                 questions = extendedPool.slice(0, finalLimit);
-            } else {
-                 // 正常情況：使用去重邏輯
-                 questions = getUniqueQuestions(selectedType, finalLimit, fullPool);
-            }
+            // 現在 finalLimit 絕對 <= fullPool.length，所以直接呼叫 getUniqueQuestions 即可
+            questions = getUniqueQuestions(selectedType, finalLimit, fullPool);
 
             userRecords = [];
             currentIdx = 0;
@@ -1006,6 +998,7 @@
             container.innerHTML = "";
 
             let items = [];
+            // ★ 修改：圖鑑篩選邏輯，加入 egg
             if (type === 'all') {
                 items = [...database];
             } else if (type === 'egg') {
@@ -1058,4 +1051,3 @@
     </script>
 </body>
 </html>
-
