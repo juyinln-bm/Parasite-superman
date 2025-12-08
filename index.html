@@ -19,8 +19,8 @@
         /* ========== 遊戲區域配置 (縮小版) ========== */
         .game-area { 
             width: 95%;          
-            max-width: 500px;    /* 從 550px 縮小至 500px */
-            height: 680px;       /* 從 750px 縮小至 680px */
+            max-width: 500px;    
+            height: 680px;       
             margin-bottom: 10px; 
             position: relative;
             display: flex;
@@ -28,10 +28,10 @@
             gap: 10px; 
         }
 
-        /* 1. 靜態圖片區 (等比縮小) */
+        /* 1. 靜態圖片區 */
         .static-img-container {
             width: 100%;
-            height: 400px;       /* 從 450px 縮小至 400px */
+            height: 400px;       
             background: white;
             border-radius: 15px;
             padding: 5px;        
@@ -53,7 +53,7 @@
 
         /* 2. 靜態提示區 */
         .static-hint-area {
-            height: 25px; /* 稍微縮小 */
+            height: 25px; 
             display: flex;
             align-items: center;
             justify-content: center;
@@ -65,7 +65,7 @@
             perspective: 600px;
             width: 100%;
             flex: 1; 
-            min-height: 180px; /* 從 200px 縮小至 180px */
+            min-height: 180px; 
             position: relative;
         }
 
@@ -92,21 +92,21 @@
             align-items: center; 
             justify-content: center; 
             background: white; 
-            padding: 12px; /* 從 15px 縮小至 12px */
+            padding: 12px; 
             box-sizing: border-box; 
         }
         
         .card__face--front { background: #ffffff; }
         .card__face--back { background: #f8f9fa; transform: rotateY(180deg); text-align: center; }
         
-        /* 輸入與按鈕 (配合縮小調整字體與間距) */
+        /* 輸入與按鈕 */
         input[type="text"] { 
-            padding: 10px;        /* 縮小 padding */
+            padding: 10px;        
             width: 90%; 
-            margin-bottom: 10px;  /* 縮小 margin */
+            margin-bottom: 10px;  
             border: 2px solid #ddd; 
             border-radius: 5px; 
-            font-size: 16px;      /* 從 18px 縮小至 16px */
+            font-size: 16px;      
         }
         button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background 0.3s; }
         button:hover { background-color: #0056b3; }
@@ -126,9 +126,9 @@
         .btn-restart { background-color: #17a2b8; margin-top: 10px; }
 
         /* 結果顯示 */
-        .result-text { font-size: 22px; font-weight: bold; margin-bottom: 5px; } /* 字體微調 */
+        .result-text { font-size: 22px; font-weight: bold; margin-bottom: 5px; } 
         .correct { color: #28a745; } .wrong { color: #dc3545; }
-        .answer-detail { font-size: 16px; color: #555; margin-bottom: 8px; width: 100%; } /* 字體微調 */
+        .answer-detail { font-size: 16px; color: #555; margin-bottom: 8px; width: 100%; } 
         
         /* 描述區塊樣式 */
         .desc-box {
@@ -137,7 +137,7 @@
             color: #856404;
             padding: 8px;
             border-radius: 5px;
-            font-size: 14px; /* 從 15px 縮小至 14px */
+            font-size: 14px; 
             margin-bottom: 8px;
             text-align: left;
             width: 100%;
@@ -145,7 +145,7 @@
             overflow-y: auto;
         }
 
-        /* 計時器樣式 (寬度限制跟隨 game-area) */
+        /* 計時器樣式 */
         .timer-container { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; width: 95%; max-width: 500px; }
         .timer-bar-bg { width: 100%; height: 8px; background: #e9ecef; border-radius: 5px; overflow: hidden; }
         .timer-bar-fill { height: 100%; background: #28a745; width: 100%; transition: width 1s linear, background 0.3s; }
@@ -304,6 +304,7 @@
             <p>選擇練習範圍</p>
             <select id="category-select">
                 <option value="all">🔥 我全都要</option>
+                <option value="egg">🥚 蟲卵專區</option>
                 <option value="線蟲">🪱 線蟲 </option>
                 <option value="絛蟲">🎗️ 絛蟲 </option>
                 <option value="吸蟲">🍃 吸蟲 </option>
@@ -315,7 +316,7 @@
 
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
 
-            <p>輸入暱稱(計時才須用)</p>
+            <p>輸入暱稱</p>
             <input type="text" id="nickname" placeholder="...." maxlength="10">
             
             <div class="btn-group">
@@ -331,7 +332,7 @@
         <div class="modal-content">
             <h3 style="margin-top:0;">⏱️ 選擇挑戰秒數</h3>
             <button class="timer-btn btn-40s" onclick="confirmRanked(40)">40 秒 (標準)</button>
-            <button class="timer-btn btn-50s" onclick="confirmRanked(50)">50 秒 (玻片被動到了)</button>
+            <button class="timer-btn btn-50s" onclick="confirmRanked(50)">50 秒 (寬鬆)</button>
             <button class="timer-btn btn-cancel" onclick="closeTimerModal()">取消</button>
         </div>
     </div>
@@ -428,6 +429,7 @@
         <div class="gallery-filter">
             <select id="gallery-filter-select" onchange="filterGallery()">
                 <option value="all">全部顯示</option>
+                <option value="egg">🥚 蟲卵專區</option>
                 <option value="線蟲">線蟲</option>
                 <option value="絛蟲">絛蟲</option>
                 <option value="吸蟲">吸蟲</option>
@@ -472,7 +474,7 @@
             { id: 14, type: '線蟲', img: "images/14.jpg", ans: ["embryonated egg of Ascaris lumbricoides"], desc: "蛔蟲胎蟲卵 蟲體蜷曲在蟲卵內，再加上波浪狀外膜確定是蛔蟲" },
             { id: 15, type: '線蟲', img: "images/15.jpg", ans: ["embryonated egg of hookworm"], desc: "鉤蟲胎蟲卵  似蟯蟲，但蟯蟲卵殼較厚且一邊較凸一邊較扁平" },
             { id: 16, type: '線蟲', img: "images/16.jpg", ans: ["egg of hookworm"], desc: "鉤蟲蟲卵  似蟯蟲，但蟯蟲卵殼較厚且一邊較凸一邊較扁平" },
-            { id: 17, type: '線蟲', img: "images/17.jpg", ans: ["Buccal capsule of Ancyclostoma duodenale"], desc: "看到尖牙就可以確定是十二指腸鉤蟲" },
+            { id: 17, type: '線蟲', img: "images/17.jpg", ans: ["Buccal capsule of Ancylostoma duodenale"], desc: "看到尖牙就可以確定是十二指腸鉤蟲" },
             { id: 18, type: '線蟲', img: "images/18.jpg", ans: ["Buccal capsule of Necator americanus"], desc: "無牙齒、有倒V字形切板者為美洲鉤蟲" },
             { id: 19, type: '線蟲', img: "images/19.jpg", ans: ["Filariform larva of Strongyloides stercoralis"], desc: "糞小桿線蟲F-form 沒有外鞘結構，且末端不會形成細尖、鈍或是倒V" },
             { id: 20, type: '線蟲', img: "images/20.jpg", ans: ["Filariform Larva of Necator americanus"], desc: "美洲鉤蟲F-form 有外鞘+有明顯橫紋(striation)" },
@@ -575,8 +577,13 @@
         function initializeGame(mode) {
             const selectedType = document.getElementById('category-select').value;
             let pool = [];
+            
+            // ★ 修改：新增蛋的篩選邏輯
             if (selectedType === 'all') {
                 pool = [...database];
+            } else if (selectedType === 'egg') {
+                // 篩選所有 ans 中含有 'egg' (不分大小寫) 的題目
+                pool = database.filter(item => item.ans.some(a => a.toLowerCase().includes('egg')));
             } else {
                 pool = database.filter(item => item.type === selectedType);
             }
@@ -598,7 +605,7 @@
             else if (mode === 'practice') modeTitle = "📝 模擬測驗";
             else modeTitle = "🃏 翻卡記憶";
 
-            document.getElementById('player-display').innerText = `${modeTitle} - ${nickname} (${selectedType}) - 共 ${finalLimit} 題`;
+            document.getElementById('player-display').innerText = `${modeTitle} - ${nickname} (${selectedType === 'egg' ? '蟲卵專區' : selectedType}) - 共 ${finalLimit} 題`;
 
             // 控制按鈕和計時器顯示
             const submitBtn = document.getElementById('submit-early-btn');
@@ -956,7 +963,15 @@
             const container = document.getElementById('gallery-container');
             container.innerHTML = "";
 
-            let items = (type === 'all') ? database : database.filter(d => d.type === type);
+            let items = [];
+            // ★ 修改：圖鑑篩選邏輯，加入 egg
+            if (type === 'all') {
+                items = [...database];
+            } else if (type === 'egg') {
+                items = database.filter(item => item.ans.some(a => a.toLowerCase().includes('egg')));
+            } else {
+                items = database.filter(d => d.type === type);
+            }
 
             if(items.length === 0) {
                 container.innerHTML = "<p style='text-align:center'>無資料</p>";
@@ -1005,12 +1020,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
