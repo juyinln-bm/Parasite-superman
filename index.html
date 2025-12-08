@@ -303,12 +303,12 @@
             
             <p>選擇練習範圍</p>
             <select id="category-select">
-                <option value="all">🔥 我全都要 x68</option>
-                <option value="egg">🥚 蟲卵專區 x19</option>
-                <option value="線蟲">🪱 線蟲 x23</option>
-                <option value="絛蟲">🎗️ 絛蟲 x12</option>
-                <option value="吸蟲">🍃 吸蟲 x15</option>
-                <option value="原蟲">🦠 原蟲 x18</option>
+                <option value="all">🔥 我全都要</option>
+                <option value="egg">🥚 蟲卵專區</option>
+                <option value="線蟲">🪱 線蟲 </option>
+                <option value="絛蟲">🎗️ 絛蟲 </option>
+                <option value="吸蟲">🍃 吸蟲 </option>
+                <option value="原蟲">🦠 原蟲 </option>
             </select>
 
             <p>設定題數 (跑台預設 10 題)</p>
@@ -413,7 +413,7 @@
         </div>
 
         <div style="text-align: center; margin-top: 20px;">
-            <button class="btn-restart" onclick="location.reload()">回到首頁 🏠</button>
+            <button class="btn-restart" onclick="goHome()">回到首頁 🏠</button>
         </div>
     </div>
 
@@ -421,7 +421,7 @@
         <h3 style="text-align:center;">📖 寄生蟲圖鑑大全</h3>
         
         <div style="text-align: center; margin-bottom: 15px;">
-            <button class="btn-restart" onclick="location.reload()">回到首頁 🏠</button>
+            <button class="btn-restart" onclick="goHome()">回到首頁 🏠</button>
         </div>
 
         <p style="text-align:center; color:#666; font-size:0.9em;">點擊圖片可放大檢視</p>
@@ -429,7 +429,7 @@
         <div class="gallery-filter">
             <select id="gallery-filter-select" onchange="filterGallery()">
                 <option value="all">全部顯示</option>
-                <option value="egg">蟲卵專區</option>
+                <option value="egg">🥚 蟲卵專區</option>
                 <option value="線蟲">線蟲</option>
                 <option value="絛蟲">絛蟲</option>
                 <option value="吸蟲">吸蟲</option>
@@ -463,11 +463,11 @@
             { id: 3, type: '線蟲', img: "images/3.jpg", ans: ["anterior end of Anisakis spp.", "boring tooth of Anisakis spp."], desc: "海獸胃線蟲 前端有boring tooth鑽洞齒，與頭端呈切線方向" },
             { id: 4, type: '線蟲', img: "images/4.jpg", ans: ["terminal spine of Anisakis spp."], desc: "海獸胃線蟲 尾刺與尾端垂直" },
             { id: 5, type: '線蟲', img: "images/5.jpg", ans: ["Egg of Trichuris trichiura"], desc: "鞭蟲卵 Barrel-shaped 酒桶狀、厚卵殼(轉動時會像兩條線的膜)、無橫紋" },
-            { id: 6, type: '線蟲', img: "images/6.jpg", ans: ["Cyst of Trichinella spiralis"], desc: "旋毛蟲" },
+            { id: 6, type: '線蟲', img: "images/6.jpg", ans: ["Cyst of Trichinella Spiralis"], desc: "旋毛蟲" },
             { id: 7, type: '線蟲', img: "images/7.jpg", ans: ["adult male of Trichuris trichiura"], desc: "雄鞭蟲 頭細 尾端有尖尖的交尾刺" },
             { id: 8, type: '線蟲', img: "images/8.jpg", ans: ["adult female of Trichuris trichiura"], desc: "雌鞭蟲成蟲 頭細 尾圓鈍" },
             { id: 9, type: '線蟲', img: "images/9.jpg", ans: ["Egg of Enterobius vermicularis"], desc: "蟯蟲卵 雙層殼且不對稱 =  一邊扁一邊凸" },
-            { id: 10, type: '線蟲', img: "images/10.jpg", ans: ["Embryonated egg of Enterobius vermicularis"], desc: "蟯蟲胎蟲卵 雙層卵殼，裡面有胎蟲(一或多條摺痕)" },
+            { id: 10, type: '線蟲', img: "images/10.jpg", ans: ["Embryonated egg of Enterobius vermicularis"], desc: "蟯蟲胎蟲卵 卵殼中出現胎蟲(一或多條摺痕)" },
             { id: 11, type: '線蟲', img: "images/11.jpg", ans: ["female of Enterobius vermicularis", "female adult of Enterobius vermicularis", "adult female of enterobius vermicularis"], desc: "蟯蟲的雌成蟲 頭端兩側有角質化鼓起的側翼 顯微鏡下呈紅色" },
             { id: 12, type: '線蟲', img: "images/12.jpg", ans: ["fertilized egg of Ascaris lumbricoides"], desc: "受精蛔蟲卵 外型圓，卵細胞顆粒細小且排列緊密，波浪狀外膜分布均勻" },
             { id: 13, type: '線蟲', img: "images/13.jpg", ans: ["unfertilized egg of Ascaris lumbricoides"], desc: "未受精蛔蟲卵 外型橢圓，卵細胞顆粒較粗大且排列較鬆散，波浪狀外膜較不平" },
@@ -481,7 +481,7 @@
             { id: 21, type: '線蟲', img: "images/21.jpg", ans: ["Filariform Larva of Ancylostoma duodenale"], desc: "十二指腸鉤蟲F-form 有外鞘+但不具有橫紋" },
             { id: 22, type: '線蟲', img: "images/22.jpg", ans: ["microfilaria of Wuchereria bancrofti"], desc: "班氏絲蟲微絲蟲 蟲體捲曲度不大" },
             { id: 23, type: '線蟲', img: "images/23.jpg", ans: ["microfilaria of Brugia malayi"], desc: "馬來絲蟲微絲蟲 非常捲曲" },
-            { id: 24, type: '吸蟲', img: "images/24.jpg", ans: ["Egg of Fasciolopsis buski"], desc: "薑片蟲蟲卵 長橢圓形，淡黃色或黃色，薄殼，內部有一顆一顆的卵細胞" },
+            { id: 24, type: '吸蟲', img: "images/24.jpg", ans: ["Egg of Fasciolopsis Buski"], desc: "薑片蟲蟲卵 長橢圓形，淡黃色或黃色，薄殼，內部有一顆一顆的卵細胞" },
             { id: 25, type: '吸蟲', img: "images/25.jpg", ans: ["Adult worm of Fasciolopsis buski"], desc: "薑片蟲成蟲 腸道最大隻的吸蟲(只能看到約2/3的蟲體)" },
             { id: 26, type: '吸蟲', img: "images/26.jpg", ans: ["Adult worm of Metagonimus Yokogawai"], desc: "橫川異形吸蟲成蟲 中間藍色卵巢(?) 尾端兩顆淡黃藍圓睪丸 " },
             { id: 27, type: '吸蟲', img: "images/27.jpg", ans: ["Adult worm of Echinostoma revolutum"], desc: "外旋棘口吸蟲成蟲 腹吸盤在中間靠前" },
@@ -510,10 +510,10 @@
             { id: 51, type: '原蟲', img: "images/51.jpg", ans: ["Promastigote of Leishmania spp.", "Promastigote form of Leishmania spp."], desc: "利什曼蟲的前鞭毛體" },
             { id: 52, type: '原蟲', img: "images/52.jpg", ans: ["Trypomastigote of Trypanosoma spp.", "Trypomastigote form of Trypanosoma spp."], desc: "錐蟲的錐鞭毛體 背景中的圓圈是紅血球、" },
             { id: 53, type: '原蟲', img: "images/53.jpg", ans: ["Early trophozoite of Plasmodium vivax", "Early trophozoite form of Plasmodium vivax"], desc: "間日瘧原蟲早期活動體 跟其他瘧原蟲比起來,間日瘧原蟲的環較大圈" },
-            { id: 54, type: '原蟲', img: "images/54.jpg", ans: ["Mature trophozoite of Plasmodium vivax", "Mature trophozoite form of Plasmodium vivax"], desc: "間日瘧原蟲成熟的活動體 明顯的薛氏點(Schuffner’s dots),；右下為厚血液抹片 火焰狀" },
+            { id: 54, type: '原蟲', img: "images/54.jpg", ans: ["Mature trophozoite of Plasmodium vivax", "Mature trophozoite form of Plasmodium vivax"], desc: "間日瘧原蟲成熟的活動體 明顯的薛氏點(Schuffner’s dots)," },
             { id: 55, type: '原蟲', img: "images/55.jpg", ans: ["Early trophozoite of Plasmodium falciparum", "Early trophozoite form of Plasmodium falciparum"], desc: "惡性瘧原蟲早期活動體 考跑台時若是看到一個紅血球中有兩隻蟲，就寫惡性瘧原蟲、戒指環也比較小一點" },
             { id: 56, type: '原蟲', img: "images/56.jpg", ans: ["Trophozoite of Toxoplasma gondii", "Trophozoite form of Toxoplasma gondii"], desc: "弓蟲活動體" },
-            { id: 57, type: '絛蟲', img: "images/57.jpg", ans: ["Egg of Diphyllobothrium latum"], desc: "廣節裂頭絛蟲的蟲卵 外觀呈橢圓、卵圓形，有許多卵細胞、卵蓋比薑片蟲明顯" },
+            { id: 57, type: '絛蟲', img: "images/57.jpg", ans: ["Egg of Diphyllobothrium latum"], desc: "廣節裂頭絛蟲的蟲卵 外觀呈橢圓、卵圓形，有許多卵細胞、頭端有裂縫=卵蓋 (微調焦距)" },
             { id: 58, type: '絛蟲', img: "images/58.jpg", ans: ["Gravid proglottid of Diphyllobothrium latum"], desc: "廣節裂頭絛蟲的受孕體節" },
             { id: 59, type: '絛蟲', img: "images/59.jpg", ans: ["Egg of Taenia spp."], desc: "有鉤絛蟲卵 像甜甜圈、輪胎 " },
             { id: 60, type: '絛蟲', img: "images/60.jpg", ans: ["Gravid proglottid of Taenia solium"], desc: "受孕體節+有鉤絛蟲 Taenia solium 分支數較少；Taenia saginata 分支數較多" },
@@ -574,7 +574,23 @@
             document.getElementById('timer-modal').style.display = 'none';
         }
 
-        // ★ 新增：不重複抽題核心邏輯
+        // ★ 解決方法：回到首頁不再刷新，而是切換顯示
+        function goHome() {
+            // 1. 隱藏其他頁面
+            document.getElementById('game-section').classList.remove('active');
+            document.getElementById('summary-section').classList.remove('active');
+            document.getElementById('gallery-section').classList.remove('active');
+            
+            // 2. 顯示首頁
+            document.getElementById('login-section').classList.add('active');
+            
+            // 3. 清理計時器 (保險起見)
+            clearInterval(timerInterval);
+            
+            // 注意：這裡不清除 questionStacks，這樣記憶才會留著
+        }
+
+        // 不重複抽題核心邏輯
         function getUniqueQuestions(categoryKey, count, fullPool) {
             // 1. 如果這個分類還沒建立堆疊，就初始化 (複製一份完整題目並洗牌)
             if (!questionStacks[categoryKey]) {
@@ -600,7 +616,6 @@
                 console.log(`[系統] 🔄 ${categoryKey} 題庫已重置！`);
 
                 // 5. 補足不夠的題目
-                // 防呆：如果總題數本身就小於需要的數量 (例如總共只有5題，但要考10題)
                 if (needed > stack.length) {
                     needed = stack.length; // 就只能拿這麼多了
                 }
@@ -636,9 +651,6 @@
             let inputLimit = parseInt(document.getElementById('question-limit').value);
             if (isNaN(inputLimit) || inputLimit < 1) inputLimit = 10;
             
-            // ★ 修改：不再只看 min，而是允許 inputLimit 大於 pool (會循環)
-            // 但單次測驗上限還是不能超過總題數太多，避免當機，這裡設個保險
-            // 邏輯調整：如果題庫只有 5 題，玩家設 10 題，getUniqueQuestions 會處理循環，所以這裡不需要限制 finalLimit
             const finalLimit = inputLimit; 
 
             document.getElementById('login-section').classList.remove('active');
@@ -665,8 +677,7 @@
                 submitBtn.innerText = "🏁 結束閱覽";
             }
 
-            // ★ 關鍵修改：使用不重複抽題邏輯
-            // 如果題庫總數小於要求題數 (例如總共只有 5 題但要考 10 題)，為了避免無限迴圈，我們直接給完整的隨機排列
+            // 使用不重複抽題邏輯
             if (fullPool.length < finalLimit) {
                  // 題目不夠時，直接重複使用完整題庫直到滿足數量
                  let extendedPool = [];
@@ -995,7 +1006,6 @@
             container.innerHTML = "";
 
             let items = [];
-            // ★ 修改：圖鑑篩選邏輯，加入 egg
             if (type === 'all') {
                 items = [...database];
             } else if (type === 'egg') {
@@ -1048,9 +1058,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
