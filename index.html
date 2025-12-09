@@ -16,7 +16,7 @@
         .login-box { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 90%; }
         .login-box input, .login-box select { padding: 12px; font-size: 18px; width: 80%; border: 2px solid #ddd; border-radius: 5px; margin-bottom: 20px; }
         
-        /* ========== 遊戲區域配置 (縮小版) ========== */
+        /* ========== 遊戲區域配置 ========== */
         .game-area { 
             width: 95%;          
             max-width: 500px;    
@@ -210,22 +210,47 @@
         .status-badge.ok { background-color: #d4edda; color: #155724; }
         .status-badge.no { background-color: #f8d7da; color: #721c24; }
 
-        /* 圖鑑模式表格樣式 */
+        /* 圖鑑模式表格樣式 (修正手機版顯示問題) */
         #gallery-section { width: 98%; max-width: 900px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 30px; }
         .gallery-filter { margin-bottom: 20px; text-align: center; }
         .gallery-filter select { padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; }
         
-        .gallery-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+        /* 表格捲動容器 */
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto; 
+            -webkit-overflow-scrolling: touch; 
+        }
+
+        .gallery-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 15px; 
+            min-width: 500px; /* 強制最小寬度，避免擠壓 */
+        }
         .gallery-table th, .gallery-table td { border: 1px solid #eee; padding: 10px; text-align: left; vertical-align: middle; }
-        .gallery-table th { background-color: #f8f9fa; color: #333; font-weight: bold; position: sticky; top: 0; }
+        .gallery-table th { background-color: #f8f9fa; color: #333; font-weight: bold; position: sticky; top: 0; white-space: nowrap; }
         .gallery-table tr:hover { background-color: #f1f1f1; }
         
-        /* ★ 圖鑑列表星星樣式 */
+        /* ★ 強制鎖定欄位寬度，防止手機版變形 */
+        .col-fav { width: 60px; min-width: 60px; max-width: 60px; text-align: center; }
+        .col-id { width: 40px; min-width: 40px; text-align: center; }
+        .col-img { width: 70px; min-width: 70px; text-align: center; }
+
+        /* ★ 星星按鈕置中修正 */
+        .gallery-fav-cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+        }
         .gallery-fav {
             cursor: pointer;
-            font-size: 1.5em;
+            font-size: 24px;
             color: #ccc;
             user-select: none;
+            line-height: 1;
         }
         .gallery-fav.active {
             color: #f59e0b;
@@ -233,6 +258,13 @@
 
         .gallery-thumb-small { width: 60px; height: 60px; object-fit: cover; border-radius: 5px; cursor: pointer; border: 1px solid #ddd; }
         
+        /* 手機版字體微調 */
+        @media (max-width: 600px) {
+            .gallery-table { font-size: 13px; }
+            .gallery-table th, .gallery-table td { padding: 6px; }
+        }
+
+        /* 彈窗樣式 */
         .gallery-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: none; align-items: center; justify-content: center; flex-direction: column; }
         .gallery-overlay img { max-width: 95%; max-height: 80%; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
         .gallery-overlay-text { color: white; margin-top: 20px; font-size: 20px; font-weight: bold; text-align: center; background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 50px; }
@@ -496,12 +528,12 @@
         // 變數化時間設定
         let timePerQuestion = 40; 
         
-        // 3. 題目資料庫 (已加入 desc 欄位)
+        // 3. 題目資料庫 (修正版)
         const database = [
             { id: 1, type: '線蟲', img: "images/1.jpg", ans: ["Bursa copulatory of Angiostrongylus cantonensis", "male of Angiostrongylus cantonensis", "Spicule of Angiostrongylus cantonensis"], desc: "廣東住血線蟲 L5雄蟲；前面形容也可以寫 Male of-, Spicule of-" },
             { id: 2, type: '線蟲', img: "images/2.jpg", ans: ["Female of Angiostrongylus cantonensis", "Posterior portion of Angiostrongylus cantonensis"], desc: "廣東住血線蟲 L5雌蟲 尾部整體呈溜滑梯狀" },
-            { id: 3, type: '線蟲', img: "images/3.jpg", ans: ["anterior end of Anisakis spp.", "boring tooth of Anisakis spp."], desc: "海獸胃線蟲 前端有boring tooth鑽洞齒，與頭端呈切線方向" },
-            { id: 4, type: '線蟲', img: "images/4.jpg", ans: ["terminal spine of Anisakis spp."], desc: "海獸胃線蟲 尾刺與尾端垂直" },
+            { id: 3, type: '線蟲', img: "images/3.jpg", ans: ["Anterior end of Anisakis spp.", "boring tooth of Anisakis spp."], desc: "海獸胃線蟲 前端有boring tooth鑽洞齒，與頭端呈切線方向" },
+            { id: 4, type: '線蟲', img: "images/4.jpg", ans: ["Terminal spine of Anisakis spp."], desc: "海獸胃線蟲 尾刺與尾端垂直" },
             { id: 5, type: '線蟲', img: "images/5.jpg", ans: ["Egg of Trichuris trichiura"], desc: "鞭蟲卵 Barrel-shaped 酒桶狀、厚卵殼(轉動時會像兩條線的膜)、無橫紋" },
             { id: 6, type: '線蟲', img: "images/6.jpg", ans: ["Cyst of Trichinella spiralis"], desc: "旋毛蟲" },
             { id: 7, type: '線蟲', img: "images/7.jpg", ans: ["Adult male of Trichuris trichiura", "Male adult of Trichuris trichiura"], desc: "雄鞭蟲 頭細 尾端有尖尖的交尾刺" },
@@ -1099,7 +1131,7 @@
                 return;
             }
 
-            let html = '<table class="gallery-table"><thead><tr><th style="width:50px">收藏</th><th style="width:50px">ID</th><th style="width:80px">圖片</th><th>名稱</th><th>特徵/描述</th></tr></thead><tbody>';
+            let html = '<table class="gallery-table"><thead><tr><th class="col-fav">收藏</th><th class="col-id">ID</th><th class="col-img">圖片</th><th>名稱</th><th>特徵/描述</th></tr></thead><tbody>';
             
             items.forEach(item => {
                 const descDisplay = item.desc ? item.desc : "<span style='color:#ccc; font-style:italic;'>暫無描述</span>";
@@ -1112,16 +1144,17 @@
                 const safeDesc = item.desc ? item.desc.replace(/'/g, "\\'") : "";
 
                 html += `<tr>
-                    <td style="text-align:center; font-size:1.5em; cursor:pointer;" class="gallery-fav ${activeClass}" onclick="toggleGalleryFav(${item.id})">${favIcon}</td>
-                    <td>${item.id}</td>
-                    <td><img src="${item.img}" class="gallery-thumb-small" onclick="showOverlay('${item.img}', '${safeTitle}', '${safeDesc}')"></td>
+                    <td class="gallery-fav ${activeClass} col-fav"><div class="gallery-fav-cell" onclick="toggleGalleryFav(${item.id})">${favIcon}</div></td>
+                    <td class="col-id">${item.id}</td>
+                    <td class="col-img"><img src="${item.img}" class="gallery-thumb-small" onclick="showOverlay('${item.img}', '${safeTitle}', '${safeDesc}')"></td>
                     <td>${item.ans[0]}</td>
                     <td>${descDisplay}</td>
                 </tr>`;
             });
             
             html += '</tbody></table>';
-            container.innerHTML = html;
+            // 包在 wrapper 裡
+            container.innerHTML = `<div class="table-wrapper">${html}</div>`;
         }
 
         function showOverlay(imgSrc, title, desc) {
