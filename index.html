@@ -8,13 +8,40 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding-bottom: 50px; }
         h2 { color: #333; margin: 20px 0; }
         
+        /* ★★★ 新增：公告欄位樣式 ★★★ */
+        #announcement-bar {
+            /* Position and Sizing */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex; /* 確保內容置中 */
+            justify-content: center;
+            align-items: center;
+            padding: 8px 15px;
+            text-align: center;
+            font-size: 14px;
+            z-index: 1000; 
+            /* Subtle Styling */
+            background-color: rgba(255, 255, 255, 0.9); /* 半透明白色 */
+            color: #333;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        #announcement-bar span:last-child {
+            cursor: pointer;
+            font-weight: bold;
+            margin-left: 15px;
+            font-size: 1.2em;
+            color: #dc2626; /* 關閉按鈕紅色 */
+        }
+        
         /* 區塊控制 */
         .section { display: none; width: 100%; max-width: 600px; flex-direction: column; align-items: center; }
         .active { display: flex; }
 
         /* 登入區塊 */
         .login-box { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 90%; }
-        .login-box input, .login-box select, .login-box textarea { padding: 12px; font-size: 18px; width: 80%; border: 2px solid #ddd; border-radius: 5px; margin-bottom: 20px; }
+        .login-box input, .login-box select { padding: 12px; font-size: 18px; width: 80%; border: 2px solid #ddd; border-radius: 5px; margin-bottom: 20px; }
         
         /* ========== 遊戲區域配置 ========== */
         .game-area { 
@@ -217,6 +244,13 @@
         .gallery-filter { margin-bottom: 20px; text-align: center; }
         .gallery-filter select { padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; width: 80%; }
         
+        /* 表格捲動容器 */
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto; 
+            -webkit-overflow-scrolling: touch; 
+        }
+
         /* 每個圖鑑項目的容器 (Row) */
         .gallery-item-row {
             display: flex;
@@ -390,6 +424,11 @@
 </head>
 <body>
 
+    <div id="announcement-bar" style="display:none;">
+        <span id="announcement-text"></span>
+        <span onclick="dismissAnnouncement()">×</span>
+    </div>
+
     <div id="login-section" class="section active">
         <h2>🤡 搶救寄生蟲大作戰</h2>
         <div class="login-box">
@@ -435,7 +474,7 @@
     <div id="feedback-modal" class="modal">
         <div class="modal-content">
             <h3 style="margin-top:0;">💬 匿名意見回饋</h3>
-            <p style="font-size:14px; color:#666; margin-bottom:10px;">有什麼錯誤或建議都可以說！祝考試加油！</p>
+            <p style="font-size:14px; color:#666; margin-bottom:10px;">請輸入您的建議、發現的錯誤，或是想對作者說的話：</p>
             <textarea id="feedback-text" placeholder="輸入內容..."></textarea>
             <button class="timer-btn btn-50s" id="btn-send-feedback" onclick="sendFeedback()">📤 送出</button>
             <button class="timer-btn btn-cancel" onclick="closeFeedbackModal()">取消</button>
@@ -563,7 +602,7 @@
     <script>
         // ==========================================
         // 🔧 設定區 🔧
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxTjTVg9kicpIHtPoRFnKQXgMNrGZdA1YnVar7uUbCzAt9hpCgWBK6CaUtlHxv1llKDLA/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyxzdY2x1ZqsqhE-j_xgNUN0y297YaP4IbMyCb35zsJ7FAE61RGczbbSOC1u5GUi3ykmw/exec";
         
         // 變數化時間設定
         let timePerQuestion = 40; 
@@ -590,7 +629,7 @@
             { id: 18, type: '線蟲', img: "images/18.jpg", ans: ["Buccal capsule of Necator americanus"], desc: "無牙齒、有倒V字形切板者為美洲鉤蟲" },
             { id: 19, type: '線蟲', img: "images/19.jpg", ans: ["Filariform larva of Strongyloides stercoralis"], desc: "糞小桿線蟲F-form 沒有外鞘結構，且末端不會形成細尖、鈍或是倒V" },
             { id: 20, type: '線蟲', img: "images/20.jpg", ans: ["Filariform larva of Necator americanus"], desc: "美洲鉤蟲F-form 有外鞘+有明顯橫紋(striation)" },
-            { id: 21, type: '線蟲', img: "images/21.jpg", ans: ["Filariform larva of Ancyclostoma duodenale"], desc: "十二指腸鉤蟲F-form 有外鞘+但不具有橫紋" },
+            { id: 21, type: '線蟲', img: "images/21.jpg", ans: ["Filariform larva of Ancylostoma duodenale"], desc: "十二指腸鉤蟲F-form 有外鞘+但不具有橫紋" },
             { id: 22, type: '線蟲', img: "images/22.jpg", ans: ["Microfilaria of Wuchereria bancrofti"], desc: "班氏絲蟲微絲蟲 蟲體捲曲度不大" },
             { id: 23, type: '線蟲', img: "images/23.jpg", ans: ["Microfilaria of Brugia malayi"], desc: "馬來絲蟲微絲蟲 非常捲曲" },
             { id: 24, type: '吸蟲', img: "images/24.jpg", ans: ["Egg of Fasciolopsis Buski"], desc: "薑片蟲蟲卵 長橢圓形，淡黃色或黃色，薄殼，內部有一顆一顆的卵細胞" },
@@ -606,7 +645,7 @@
             { id: 34, type: '吸蟲', img: "images/34.jpg", ans: ["Egg of Schistosoma haematobium"], desc: "埃及血吸蟲卵 紡錘形外觀，末端有terminal spine" },
             { id: 35, type: '吸蟲', img: "images/35.jpg", ans: ["Egg of Schistosoma mansoni"], desc: "曼森血吸蟲卵 有lateral spine" },
             { id: 36, type: '吸蟲', img: "images/36.jpg", ans: ["Egg of Schistosoma japonicum"], desc: "日本血吸蟲卵 非紡錘形，也沒有spine；裡面是幼蟲，並非卵細胞，故可以以此判斷血吸蟲" },
-            { id: 37, type: '吸蟲', img: "images/37.jpg", ans: ["Adult male of Schistosoma mansoni"], desc: "曼森血吸蟲雄蟲  頭端有向外凸出的吸盤" },
+            { id: 37, type: '吸蟲', img: "images/37.jpg", ans: ["Adult male of Schistosoma mansoni"], desc: "曼森血吸蟲雄蟲  頭端有向外凸出的吸盤" },
             { id: 38, type: '吸蟲', img: "images/38.jpg", ans: ["Adult female of Schistosoma mansoni"], desc: "曼森血吸蟲雌蟲 較細長、吸盤不明顯" },
             { id: 39, type: '原蟲', img: "images/39.jpg", ans: ["Cyst of Entamoeba coli", "Cyst form of Entamoeba coli"], desc: "大腸阿米巴的囊體 5顆以上的核就能夠判斷為大腸阿米巴" },
             { id: 41, type: '原蟲', img: "images/41.jpg", ans: ["Cyst of Endolimax nana", "Cyst form of Endolimax nana"], desc: "微小阿米巴的囊體 ，四顆細胞核都像魚眼睛(??)；痢疾阿米巴的中間有機會看到兩條棒狀染色體，但微小阿米巴只會看到四顆細胞核" },
@@ -790,7 +829,7 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ message: text }) // 這裡只傳 message
             }).then(() => {
-                alert("感謝你的回饋！");
+                alert("感謝您的回饋！我們會繼續改進 ❤️");
                 document.getElementById('feedback-text').value = ""; // 清空
                 closeFeedbackModal();
                 btn.disabled = false;
@@ -1193,7 +1232,6 @@
             container.innerHTML = "";
 
             let items = [];
-            // ★ 修改：圖鑑篩選邏輯，加入 egg 與 favorites
             if (type === 'all') {
                 items = [...database];
             } else if (type === 'egg') {
