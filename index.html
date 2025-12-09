@@ -210,66 +210,77 @@
         .status-badge.ok { background-color: #d4edda; color: #155724; }
         .status-badge.no { background-color: #f8d7da; color: #721c24; }
 
-        /* 圖鑑模式表格樣式 (修正手機版顯示問題) */
-        #gallery-section { width: 98%; max-width: 900px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        /* ★★★ 圖鑑模式 CSS 修正 (改用清單式排版) ★★★ */
+        #gallery-section { width: 95%; max-width: 600px; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 30px; }
         .gallery-filter { margin-bottom: 20px; text-align: center; }
-        .gallery-filter select { padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; }
+        .gallery-filter select { padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; width: 80%; }
         
-        /* 表格捲動容器 */
-        .table-wrapper {
-            width: 100%;
-            overflow-x: auto; 
-            -webkit-overflow-scrolling: touch; 
+        /* 每個圖鑑項目的容器 (Row) */
+        .gallery-item-row {
+            display: flex;
+            align-items: center; /* 垂直置中 */
+            border-bottom: 1px solid #eee;
+            padding: 12px 0;
+            gap: 12px; /* 元素間距 */
         }
 
-        .gallery-table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            font-size: 15px; 
-            min-width: 500px; /* 強制最小寬度，避免擠壓 */
+        /* 左側星星區域 */
+        .gal-star-box {
+            width: 40px;
+            min-width: 40px;
+            text-align: center;
+            font-size: 28px;
+            color: #ccc;
+            cursor: pointer;
         }
-        .gallery-table th, .gallery-table td { border: 1px solid #eee; padding: 10px; text-align: left; vertical-align: middle; }
-        .gallery-table th { background-color: #f8f9fa; color: #333; font-weight: bold; position: sticky; top: 0; white-space: nowrap; }
-        .gallery-table tr:hover { background-color: #f1f1f1; }
-        
-        /* ★ 強制鎖定欄位寬度，防止手機版變形 */
-        .col-fav { width: 60px; min-width: 60px; max-width: 60px; text-align: center; }
-        .col-id { width: 40px; min-width: 40px; text-align: center; }
-        .col-img { width: 70px; min-width: 70px; text-align: center; }
+        .gal-star-box.active { color: #f59e0b; }
 
-        /* ★ 星星按鈕置中修正 */
-        .gallery-fav-cell {
+        /* 中間圖片區域 */
+        .gal-img-box {
+            width: 80px;
+            min-width: 80px;
+            height: 80px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100%;
-            width: 100%;
-        }
-        .gallery-fav {
             cursor: pointer;
-            font-size: 24px;
-            color: #ccc;
-            user-select: none;
-            line-height: 1;
+            background: #f9f9f9;
         }
-        .gallery-fav.active {
-            color: #f59e0b;
-        }
-
-        .gallery-thumb-small { width: 60px; height: 60px; object-fit: cover; border-radius: 5px; cursor: pointer; border: 1px solid #ddd; }
-        
-        /* 手機版字體微調 */
-        @media (max-width: 600px) {
-            .gallery-table { font-size: 13px; }
-            .gallery-table th, .gallery-table td { padding: 6px; }
+        .gal-img-box img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
         }
 
-        /* 彈窗樣式 */
-        .gallery-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: none; align-items: center; justify-content: center; flex-direction: column; }
-        .gallery-overlay img { max-width: 95%; max-height: 80%; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .gallery-overlay-text { color: white; margin-top: 20px; font-size: 20px; font-weight: bold; text-align: center; background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 50px; }
-        .gallery-desc-text { color: #f0f0f0; margin-top: 10px; font-size: 16px; background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 10px;}
-        .gallery-close { position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; cursor: pointer; }
+        /* 右側文字區域 */
+        .gal-info-box {
+            flex: 1; /* 佔滿剩餘空間 */
+            overflow: hidden; /* 防止撐開 */
+        }
+        .gal-title {
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .gal-desc {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+        }
+        .gal-id-badge {
+            display: inline-block;
+            background: #eee;
+            color: #555;
+            font-size: 11px;
+            padding: 2px 5px;
+            border-radius: 3px;
+            margin-bottom: 3px;
+        }
+
 
         /* 排行榜表格 */
         #leaderboard-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -357,6 +368,13 @@
         .btn-cancel { background-color: #6c757d; }
         .btn-cancel:hover { background-color: #5a6268; }
 
+        /* 彈窗圖片樣式 */
+        .gallery-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: none; align-items: center; justify-content: center; flex-direction: column; }
+        .gallery-overlay img { max-width: 95%; max-height: 60%; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .gallery-overlay-text { color: white; margin-top: 20px; font-size: 20px; font-weight: bold; text-align: center; background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 50px; }
+        .gallery-desc-text { color: #f0f0f0; margin-top: 10px; font-size: 16px; background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 10px;}
+        .gallery-close { position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; cursor: pointer; }
+
     </style>
 </head>
 <body>
@@ -367,13 +385,13 @@
             
             <p>選擇練習範圍</p>
             <select id="category-select">
-                <option value="all">🔥 我全都要 x67</option>
+                <option value="all">🔥 我全都要</option>
                 <option value="favorites">🌟 我的收藏</option>
-                <option value="egg">🥚 蟲卵專區 x19</option>
-                <option value="線蟲">🪱 線蟲 x23</option>
-                <option value="絛蟲">🎗️ 絛蟲 x12</option>
-                <option value="吸蟲">🍃 吸蟲 x15</option>
-                <option value="原蟲">🦠 原蟲 x17</option>
+                <option value="egg">🥚 蟲卵專區</option>
+                <option value="線蟲">🪱 線蟲 </option>
+                <option value="絛蟲">🎗️ 絛蟲 </option>
+                <option value="吸蟲">🍃 吸蟲 </option>
+                <option value="原蟲">🦠 原蟲 </option>
             </select>
 
             <p>設定題數 (跑台預設 10 題)</p>
@@ -528,7 +546,7 @@
         // 變數化時間設定
         let timePerQuestion = 40; 
         
-        // 3. 題目資料庫 (修正版)
+        // 3. 題目資料庫 (修正語法錯誤)
         const database = [
             { id: 1, type: '線蟲', img: "images/1.jpg", ans: ["Bursa copulatory of Angiostrongylus cantonensis", "male of Angiostrongylus cantonensis", "Spicule of Angiostrongylus cantonensis"], desc: "廣東住血線蟲 L5雄蟲；前面形容也可以寫 Male of-, Spicule of-" },
             { id: 2, type: '線蟲', img: "images/2.jpg", ans: ["Female of Angiostrongylus cantonensis", "Posterior portion of Angiostrongylus cantonensis"], desc: "廣東住血線蟲 L5雌蟲 尾部整體呈溜滑梯狀" },
@@ -566,7 +584,7 @@
             { id: 34, type: '吸蟲', img: "images/34.jpg", ans: ["Egg of Schistosoma haematobium"], desc: "埃及血吸蟲卵 紡錘形外觀，末端有terminal spine" },
             { id: 35, type: '吸蟲', img: "images/35.jpg", ans: ["Egg of Schistosoma mansoni"], desc: "曼森血吸蟲卵 有lateral spine" },
             { id: 36, type: '吸蟲', img: "images/36.jpg", ans: ["Egg of Schistosoma japonicum"], desc: "日本血吸蟲卵 非紡錘形，也沒有spine；裡面是幼蟲，並非卵細胞，故可以以此判斷血吸蟲" },
-            { id: 37, type: '吸蟲', img: "images/37.jpg", ans: ["Adult male of Schistosoma mansoni"], desc: "曼森血吸蟲雄蟲  頭端有向外凸出的吸盤" },
+            { id: 37, type: '吸蟲', img: "images/37.jpg", ans: ["Adult male of Schistosoma mansoni"], desc: "曼森血吸蟲雄蟲  頭端有向外凸出的吸盤" },
             { id: 38, type: '吸蟲', img: "images/38.jpg", ans: ["Adult female of Schistosoma mansoni"], desc: "曼森血吸蟲雌蟲 較細長、吸盤不明顯" },
             { id: 39, type: '原蟲', img: "images/39.jpg", ans: ["Cyst of Entamoeba coli", "Cyst form of Entamoeba coli"], desc: "大腸阿米巴的囊體 5顆以上的核就能夠判斷為大腸阿米巴" },
             { id: 41, type: '原蟲', img: "images/41.jpg", ans: ["Cyst of Endolimax nana", "Cyst form of Endolimax nana"], desc: "微小阿米巴的囊體 ，四顆細胞核都像魚眼睛(??)；痢疾阿米巴的中間有機會看到兩條棒狀染色體，但微小阿米巴只會看到四顆細胞核" },
@@ -1103,6 +1121,7 @@
             }
         }
 
+        // --- 圖鑑功能 (改為條列式表格) ---
         function openGallery() {
             document.getElementById('login-section').classList.remove('active');
             document.getElementById('gallery-section').classList.add('active');
@@ -1131,7 +1150,8 @@
                 return;
             }
 
-            let html = '<table class="gallery-table"><thead><tr><th class="col-fav">收藏</th><th class="col-id">ID</th><th class="col-img">圖片</th><th>名稱</th><th>特徵/描述</th></tr></thead><tbody>';
+            // 改為清單模式渲染
+            let html = '';
             
             items.forEach(item => {
                 const descDisplay = item.desc ? item.desc : "<span style='color:#ccc; font-style:italic;'>暫無描述</span>";
@@ -1143,18 +1163,21 @@
                 const safeTitle = item.ans[0].replace(/'/g, "\\'");
                 const safeDesc = item.desc ? item.desc.replace(/'/g, "\\'") : "";
 
-                html += `<tr>
-                    <td class="gallery-fav ${activeClass} col-fav"><div class="gallery-fav-cell" onclick="toggleGalleryFav(${item.id})">${favIcon}</div></td>
-                    <td class="col-id">${item.id}</td>
-                    <td class="col-img"><img src="${item.img}" class="gallery-thumb-small" onclick="showOverlay('${item.img}', '${safeTitle}', '${safeDesc}')"></td>
-                    <td>${item.ans[0]}</td>
-                    <td>${descDisplay}</td>
-                </tr>`;
+                html += `
+                <div class="gallery-item-row">
+                    <div class="gal-star-box ${activeClass}" onclick="toggleGalleryFav(${item.id})">${favIcon}</div>
+                    <div class="gal-img-box" onclick="showOverlay('${item.img}', '${safeTitle}', '${safeDesc}')">
+                        <img src="${item.img}" loading="lazy">
+                    </div>
+                    <div class="gal-info-box">
+                        <div class="gal-id-badge">ID: ${item.id}</div>
+                        <div class="gal-title">${item.ans[0]}</div>
+                        <div class="gal-desc">${descDisplay}</div>
+                    </div>
+                </div>`;
             });
             
-            html += '</tbody></table>';
-            // 包在 wrapper 裡
-            container.innerHTML = `<div class="table-wrapper">${html}</div>`;
+            container.innerHTML = html;
         }
 
         function showOverlay(imgSrc, title, desc) {
