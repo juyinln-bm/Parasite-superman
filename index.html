@@ -6,35 +6,24 @@
     <title>蟲蟲危機</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding-bottom: 50px; }
-        h2 { color: #333; margin: 20px 0; }
+        h2 { color: #333; margin: 20px 0 10px 0; }
         
-        /* ★★★ 新增：公告欄位樣式 ★★★ */
-        #announcement-bar {
-            /* Position and Sizing */
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            display: flex; /* 確保內容置中 */
-            justify-content: center;
-            align-items: center;
+        /* ★★★ 新增：嵌入式公告樣式 ★★★ */
+        #inline-announcement {
+            width: 90%;
+            max-width: 600px;
+            background-color: rgba(255, 255, 255, 0.6); /* 半透明白底 */
+            border: 1px solid #e0e0e0;
+            color: #555;
             padding: 8px 15px;
+            border-radius: 8px;
             text-align: center;
-            font-size: 14px;
-            z-index: 1000; 
-            /* Subtle Styling */
-            background-color: rgba(255, 255, 255, 0.9); /* 半透明白色 */
-            color: #333;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            font-size: 13px;
+            margin-bottom: 15px; /* 與下方登入框的距離 */
+            display: none; /* 預設隱藏，有內容才顯示 */
+            line-height: 1.5;
         }
-        #announcement-bar span:last-child {
-            cursor: pointer;
-            font-weight: bold;
-            margin-left: 15px;
-            font-size: 1.2em;
-            color: #dc2626; /* 關閉按鈕紅色 */
-        }
-        
+
         /* 區塊控制 */
         .section { display: none; width: 100%; max-width: 600px; flex-direction: column; align-items: center; }
         .active { display: flex; }
@@ -244,13 +233,6 @@
         .gallery-filter { margin-bottom: 20px; text-align: center; }
         .gallery-filter select { padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; width: 80%; }
         
-        /* 表格捲動容器 */
-        .table-wrapper {
-            width: 100%;
-            overflow-x: auto; 
-            -webkit-overflow-scrolling: touch; 
-        }
-
         /* 每個圖鑑項目的容器 (Row) */
         .gallery-item-row {
             display: flex;
@@ -424,13 +406,14 @@
 </head>
 <body>
 
-    <div id="announcement-bar" style="display:none;">
-        <span id="announcement-text"></span>
-        <span onclick="dismissAnnouncement()">×</span>
-    </div>
-
     <div id="login-section" class="section active">
         <h2>🤡 搶救寄生蟲大作戰</h2>
+
+        <div id="inline-announcement">
+            📢 <strong>系統公告：</strong>
+            <span id="announcement-text"></span>
+        </div>
+
         <div class="login-box">
             
             <p>選擇練習範圍</p>
@@ -453,7 +436,7 @@
             <input type="text" id="nickname" placeholder="...." maxlength="10">
             
             <div class="btn-group">
-                <button class="btn-start" onclick="checkStart('ranked')">🏆 計時挑戰</button>
+                <button class="btn-start" onclick="checkStart('ranked')">🏆 跑考計時</button>
                 <button class="btn-practice" onclick="checkStart('practice')">📝 練習模式 </button>
                 <button class="btn-flashcard" onclick="checkStart('flashcard')">🃏 翻卡記憶 </button>
                 <button class="btn-gallery" onclick="openGallery()">📖 瀏覽圖鑑</button>
@@ -466,7 +449,7 @@
         <div class="modal-content">
             <h3 style="margin-top:0;">⏱️ 選擇挑戰秒數</h3>
             <button class="timer-btn btn-40s" onclick="confirmRanked(40)">40 秒 (標準)</button>
-            <button class="timer-btn btn-50s" onclick="confirmRanked(50)">50 秒 (寬鬆)</button>
+            <button class="timer-btn btn-50s" onclick="confirmRanked(50)">50 秒 (玻片被動到)</button>
             <button class="timer-btn btn-cancel" onclick="closeTimerModal()">取消</button>
         </div>
     </div>
@@ -474,7 +457,7 @@
     <div id="feedback-modal" class="modal">
         <div class="modal-content">
             <h3 style="margin-top:0;">💬 匿名意見回饋</h3>
-            <p style="font-size:14px; color:#666; margin-bottom:10px;">請輸入您的建議、發現的錯誤，或是想對作者說的話：</p>
+            <p style="font-size:14px; color:#666; margin-bottom:10px;">有什麼建議或錯誤的都可以說！：</p>
             <textarea id="feedback-text" placeholder="輸入內容..."></textarea>
             <button class="timer-btn btn-50s" id="btn-send-feedback" onclick="sendFeedback()">📤 送出</button>
             <button class="timer-btn btn-cancel" onclick="closeFeedbackModal()">取消</button>
@@ -607,7 +590,12 @@
         // 變數化時間設定
         let timePerQuestion = 40; 
         
-        // 3. 題目資料庫 (修正語法錯誤)
+        // ★★★ 公告內容設定區 ★★★
+        const CURRENT_ANNOUNCEMENT = {
+            message: "⚠️ 公告：Ancylostoma 多一個c已修正" // <--- 只要改這裡的文字，網頁上就會更新
+        };
+
+        // 3. 題目資料庫
         const database = [
             { id: 1, type: '線蟲', img: "images/1.jpg", ans: ["Bursa copulatory of Angiostrongylus cantonensis", "male of Angiostrongylus cantonensis", "Spicule of Angiostrongylus cantonensis"], desc: "廣東住血線蟲 L5雄蟲；前面形容也可以寫 Male of-, Spicule of-" },
             { id: 2, type: '線蟲', img: "images/2.jpg", ans: ["Female of Angiostrongylus cantonensis", "Posterior portion of Angiostrongylus cantonensis"], desc: "廣東住血線蟲 L5雌蟲 尾部整體呈溜滑梯狀" },
@@ -617,22 +605,22 @@
             { id: 6, type: '線蟲', img: "images/6.jpg", ans: ["Cyst of Trichinella spiralis"], desc: "旋毛蟲" },
             { id: 7, type: '線蟲', img: "images/7.jpg", ans: ["Adult male of Trichuris trichiura", "Male adult of Trichuris trichiura"], desc: "雄鞭蟲 頭細 尾端有尖尖的交尾刺" },
             { id: 8, type: '線蟲', img: "images/8.jpg", ans: ["Adult female of Trichuris trichiura", "Female adult of Trichuris trichiura"], desc: "雌鞭蟲成蟲 頭細 尾圓鈍" },
-            { id: 9, type: '線蟲', img: "images/9.jpg", ans: ["Egg of Enterobius vermicularis"], desc: "蟯蟲卵 雙層殼且不對稱 =  一邊扁一邊凸" },
+            { id: 9, type: '線蟲', img: "images/9.jpg", ans: ["Egg of Enterobius vermicularis"], desc: "蟯蟲卵 雙層殼且不對稱 =  一邊扁一邊凸" },
             { id: 10, type: '線蟲', img: "images/10.jpg", ans: ["Embryonated egg of Enterobius vermicularis"], desc: "蟯蟲胎蟲卵 卵殼中出現胎蟲(一或多條摺痕)" },
             { id: 11, type: '線蟲', img: "images/11.jpg", ans: ["Adult female of Enterobius vermicularis", "Female adult of Enterobius vermicularis", "adult female of enterobius vermicularis"], desc: "蟯蟲的雌成蟲 頭端兩側有角質化鼓起的側翼 顯微鏡下呈紅色" },
             { id: 12, type: '線蟲', img: "images/12.jpg", ans: ["Fertilized egg of Ascaris lumbricoides"], desc: "受精蛔蟲卵 外型圓，卵細胞顆粒細小且排列緊密，波浪狀外膜分布均勻" },
             { id: 13, type: '線蟲', img: "images/13.jpg", ans: ["Unfertilized egg of Ascaris lumbricoides"], desc: "未受精蛔蟲卵 外型橢圓，卵細胞顆粒較粗大且排列較鬆散，波浪狀外膜較不平" },
             { id: 14, type: '線蟲', img: "images/14.jpg", ans: ["Embryonated egg of Ascaris lumbricoides"], desc: "蛔蟲胎蟲卵 蟲體蜷曲在蟲卵內，再加上波浪狀外膜確定是蛔蟲" },
-            { id: 15, type: '線蟲', img: "images/15.jpg", ans: ["Embryonated egg of hookworm"], desc: "鉤蟲胎蟲卵  似蟯蟲，但蟯蟲卵殼較厚且一邊較凸一邊較扁平" },
-            { id: 16, type: '線蟲', img: "images/16.jpg", ans: ["Egg of hookworm"], desc: "鉤蟲蟲卵  似蟯蟲，但蟯蟲卵殼較厚且一邊較凸一邊較扁平" },
-            { id: 17, type: '線蟲', img: "images/17.jpg", ans: ["Buccal capsule of Ancyclostoma duodenale"], desc: "看到尖牙就可以確定是十二指腸鉤蟲" },
+            { id: 15, type: '線蟲', img: "images/15.jpg", ans: ["Embryonated egg of hookworm"], desc: "鉤蟲胎蟲卵  似蟯蟲，但蟯蟲卵殼較厚且一邊較凸一邊較扁平" },
+            { id: 16, type: '線蟲', img: "images/16.jpg", ans: ["Egg of hookworm"], desc: "鉤蟲蟲卵  似蟯蟲，但蟯蟲卵殼較厚且一邊較凸一邊較扁平" },
+            { id: 17, type: '線蟲', img: "images/17.jpg", ans: ["Buccal capsule of Ancylostoma duodenale"], desc: "看到尖牙就可以確定是十二指腸鉤蟲" },
             { id: 18, type: '線蟲', img: "images/18.jpg", ans: ["Buccal capsule of Necator americanus"], desc: "無牙齒、有倒V字形切板者為美洲鉤蟲" },
             { id: 19, type: '線蟲', img: "images/19.jpg", ans: ["Filariform larva of Strongyloides stercoralis"], desc: "糞小桿線蟲F-form 沒有外鞘結構，且末端不會形成細尖、鈍或是倒V" },
             { id: 20, type: '線蟲', img: "images/20.jpg", ans: ["Filariform larva of Necator americanus"], desc: "美洲鉤蟲F-form 有外鞘+有明顯橫紋(striation)" },
             { id: 21, type: '線蟲', img: "images/21.jpg", ans: ["Filariform larva of Ancylostoma duodenale"], desc: "十二指腸鉤蟲F-form 有外鞘+但不具有橫紋" },
             { id: 22, type: '線蟲', img: "images/22.jpg", ans: ["Microfilaria of Wuchereria bancrofti"], desc: "班氏絲蟲微絲蟲 蟲體捲曲度不大" },
             { id: 23, type: '線蟲', img: "images/23.jpg", ans: ["Microfilaria of Brugia malayi"], desc: "馬來絲蟲微絲蟲 非常捲曲" },
-            { id: 24, type: '吸蟲', img: "images/24.jpg", ans: ["Egg of Fasciolopsis Buski"], desc: "薑片蟲蟲卵 長橢圓形，淡黃色或黃色，薄殼，內部有一顆一顆的卵細胞" },
+            { id: 24, type: '吸蟲', img: "images/24.jpg", ans: ["Egg of Fasciolopsis buski"], desc: "薑片蟲蟲卵 長橢圓形，淡黃色或黃色，薄殼，內部有一顆一顆的卵細胞" },
             { id: 25, type: '吸蟲', img: "images/25.jpg", ans: ["Adult worm of Fasciolopsis buski"], desc: "薑片蟲成蟲 腸道最大隻的吸蟲(只能看到約2/3的蟲體)" },
             { id: 26, type: '吸蟲', img: "images/26.jpg", ans: ["Adult worm of Metagonimus Yokogawai"], desc: "橫川異形吸蟲成蟲 中間藍色卵巢(?) 尾端兩顆淡黃藍圓睪丸 " },
             { id: 27, type: '吸蟲', img: "images/27.jpg", ans: ["Adult worm of Echinostoma revolutum"], desc: "外旋棘口吸蟲成蟲 腹吸盤在中間靠前" },
@@ -645,7 +633,7 @@
             { id: 34, type: '吸蟲', img: "images/34.jpg", ans: ["Egg of Schistosoma haematobium"], desc: "埃及血吸蟲卵 紡錘形外觀，末端有terminal spine" },
             { id: 35, type: '吸蟲', img: "images/35.jpg", ans: ["Egg of Schistosoma mansoni"], desc: "曼森血吸蟲卵 有lateral spine" },
             { id: 36, type: '吸蟲', img: "images/36.jpg", ans: ["Egg of Schistosoma japonicum"], desc: "日本血吸蟲卵 非紡錘形，也沒有spine；裡面是幼蟲，並非卵細胞，故可以以此判斷血吸蟲" },
-            { id: 37, type: '吸蟲', img: "images/37.jpg", ans: ["Adult male of Schistosoma mansoni"], desc: "曼森血吸蟲雄蟲  頭端有向外凸出的吸盤" },
+            { id: 37, type: '吸蟲', img: "images/37.jpg", ans: ["Adult male of Schistosoma mansoni"], desc: "曼森血吸蟲雄蟲  頭端有向外凸出的吸盤" },
             { id: 38, type: '吸蟲', img: "images/38.jpg", ans: ["Adult female of Schistosoma mansoni"], desc: "曼森血吸蟲雌蟲 較細長、吸盤不明顯" },
             { id: 39, type: '原蟲', img: "images/39.jpg", ans: ["Cyst of Entamoeba coli", "Cyst form of Entamoeba coli"], desc: "大腸阿米巴的囊體 5顆以上的核就能夠判斷為大腸阿米巴" },
             { id: 41, type: '原蟲', img: "images/41.jpg", ans: ["Cyst of Endolimax nana", "Cyst form of Endolimax nana"], desc: "微小阿米巴的囊體 ，四顆細胞核都像魚眼睛(??)；痢疾阿米巴的中間有機會看到兩條棒狀染色體，但微小阿米巴只會看到四顆細胞核" },
@@ -693,6 +681,16 @@
         let currentMode = "ranked"; 
         let timerInterval;
         let timeLeft = timePerQuestion;
+
+        // ★★★ 檢查並顯示公告 ★★★
+        const announcementEl = document.getElementById('inline-announcement');
+        const announcementText = document.getElementById('announcement-text');
+        
+        // 如果有公告內容，就顯示出來
+        if (CURRENT_ANNOUNCEMENT.message) {
+            announcementText.innerText = CURRENT_ANNOUNCEMENT.message;
+            announcementEl.style.display = 'block';
+        }
 
         // 隨機洗牌函式
         function shuffle(array) {
@@ -829,7 +827,7 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ message: text }) // 這裡只傳 message
             }).then(() => {
-                alert("感謝您的回饋！我們會繼續改進 ❤️");
+                alert("謝謝回饋～　祝考試順利！");
                 document.getElementById('feedback-text').value = ""; // 清空
                 closeFeedbackModal();
                 btn.disabled = false;
@@ -1232,6 +1230,7 @@
             container.innerHTML = "";
 
             let items = [];
+            // ★ 修改：圖鑑篩選邏輯，加入 egg 與 favorites
             if (type === 'all') {
                 items = [...database];
             } else if (type === 'egg') {
