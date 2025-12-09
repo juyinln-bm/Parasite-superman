@@ -17,21 +17,43 @@
         .login-box input, .login-box select { padding: 12px; font-size: 18px; width: 80%; border: 2px solid #ddd; border-radius: 5px; margin-bottom: 20px; }
         
         /* ========== 遊戲區域配置 (縮小版) ========== */
+        /* 1. 調整遊戲總高度與間距 */
         .game-area { 
             width: 95%;          
             max-width: 500px;    
-            height: 680px;       
+            height: 700px; /* 稍微加高一點點給工具列 */
             margin-bottom: 10px; 
             position: relative;
             display: flex;
             flex-direction: column; 
-            gap: 10px; 
+            gap: 5px; /* 間距縮小，讓畫面更緊湊 */
         }
 
-        /* 1. 靜態圖片區 */
+        /* 2. 新增：圖片上方的工具列 */
+        .tool-bar {
+            width: 100%;
+            display: flex;
+            justify-content: flex-end; /* 靠右對齊 */
+            align-items: center;
+            height: 35px;
+            padding-right: 5px;
+        }
+
+        /* 3. 修改：星星按鈕 (變成一般按鈕，不再浮在圖片上) */
+        .fav-btn {
+            font-size: 28px; /* 大小適中 */
+            color: #ccc; 
+            cursor: pointer;
+            transition: transform 0.2s, color 0.2s;
+            line-height: 1; /* 修正垂直對齊 */
+        }
+        .fav-btn:hover { transform: scale(1.1); }
+        .fav-btn.active { color: #f59e0b; text-shadow: 0 0 5px rgba(245, 158, 11, 0.5); }
+
+        /* 4. 修改：圖片容器 (高度稍微縮減給工具列，移除 position:relative) */
         .static-img-container {
             width: 100%;
-            height: 400px;       
+            height: 380px; /* 原本 400 -> 改 380 把空間讓給工具列 */
             background: white;
             border-radius: 15px;
             padding: 5px;        
@@ -43,7 +65,7 @@
             border: 1px solid #ddd;
             cursor: pointer;
             overflow: hidden;    
-            position: relative; /* 為了放星星按鈕 */
+            /* 移除 position: relative; 因為星星不在裡面了 */
         }
 
         .parasite-img { 
@@ -364,10 +386,15 @@
             </div>
         </div>
 
-        <div class="game-area">
+<div class="game-area">
+            
+            <div class="tool-bar">
+                <span style="font-size:14px; color:#888; margin-right:auto;">🔍 點擊圖片放大</span>
+                <div id="fav-btn" class="fav-btn" onclick="toggleFavorite(event)">☆</div>
+            </div>
+
             <div class="static-img-container" onclick="onCardClick()">
                 <img src="" alt="題目圖片" class="parasite-img" id="q-image">
-                <div id="fav-btn" class="fav-btn" onclick="toggleFavorite(event)">☆</div>
             </div>
 
             <div class="static-hint-area">
@@ -1105,6 +1132,7 @@
     </script>
 </body>
 </html>
+
 
 
 
