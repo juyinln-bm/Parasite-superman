@@ -14,7 +14,7 @@
 
         /* 登入區塊 */
         .login-box { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 90%; }
-        .login-box input, .login-box select { padding: 12px; font-size: 18px; width: 80%; border: 2px solid #ddd; border-radius: 5px; margin-bottom: 20px; }
+        .login-box input, .login-box select, .login-box textarea { padding: 12px; font-size: 18px; width: 80%; border: 2px solid #ddd; border-radius: 5px; margin-bottom: 20px; }
         
         /* ========== 遊戲區域配置 ========== */
         .game-area { 
@@ -143,6 +143,8 @@
         .btn-flashcard:hover { background-color: #e36d0d; }
         .btn-gallery { font-size: 18px; padding: 12px 30px; background-color: #17a2b8; width: 80%; }
         .btn-gallery:hover { background-color: #138496; }
+        .btn-feedback { font-size: 16px; padding: 10px 30px; background-color: #6610f2; width: 80%; }
+        .btn-feedback:hover { background-color: #520dc2; }
 
         .btn-restart { background-color: #17a2b8; margin-top: 10px; }
 
@@ -210,7 +212,7 @@
         .status-badge.ok { background-color: #d4edda; color: #155724; }
         .status-badge.no { background-color: #f8d7da; color: #721c24; }
 
-        /* ★★★ 圖鑑模式 CSS 修正 (改用清單式排版) ★★★ */
+        /* 圖鑑模式表格樣式 */
         #gallery-section { width: 95%; max-width: 600px; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 30px; }
         .gallery-filter { margin-bottom: 20px; text-align: center; }
         .gallery-filter select { padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; width: 80%; }
@@ -218,13 +220,12 @@
         /* 每個圖鑑項目的容器 (Row) */
         .gallery-item-row {
             display: flex;
-            align-items: center; /* 垂直置中 */
+            align-items: center; 
             border-bottom: 1px solid #eee;
             padding: 12px 0;
-            gap: 12px; /* 元素間距 */
+            gap: 12px; 
         }
 
-        /* 左側星星區域 */
         .gal-star-box {
             width: 40px;
             min-width: 40px;
@@ -235,7 +236,6 @@
         }
         .gal-star-box.active { color: #f59e0b; }
 
-        /* 中間圖片區域 */
         .gal-img-box {
             width: 80px;
             min-width: 80px;
@@ -255,10 +255,9 @@
             object-fit: contain;
         }
 
-        /* 右側文字區域 */
         .gal-info-box {
-            flex: 1; /* 佔滿剩餘空間 */
-            overflow: hidden; /* 防止撐開 */
+            flex: 1; 
+            overflow: hidden; 
         }
         .gal-title {
             font-weight: bold;
@@ -322,7 +321,7 @@
         }
         #submit-early-btn:hover { background-color: #b91c1c; }
 
-        /* 秒數選擇彈窗樣式 */
+        /* 彈窗樣式 (共用) */
         .modal {
             display: none; 
             position: fixed; 
@@ -343,8 +342,9 @@
             border-radius: 15px;
             text-align: center;
             width: 90%;
-            max-width: 300px;
+            max-width: 320px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
         }
 
         .timer-btn {
@@ -361,12 +361,23 @@
 
         .btn-40s { background-color: #28a745; }
         .btn-40s:hover { background-color: #218838; }
-        
         .btn-50s { background-color: #17a2b8; }
         .btn-50s:hover { background-color: #138496; }
-
         .btn-cancel { background-color: #6c757d; }
         .btn-cancel:hover { background-color: #5a6268; }
+
+        /* 回饋表單樣式 */
+        #feedback-text {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            box-sizing: border-box;
+            resize: none;
+            margin-bottom: 10px;
+        }
 
         /* 彈窗圖片樣式 */
         .gallery-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: none; align-items: center; justify-content: center; flex-direction: column; }
@@ -385,13 +396,13 @@
             
             <p>選擇練習範圍</p>
             <select id="category-select">
-                <option value="all">🔥 我全都要</option>
+                <option value="all">🔥 我全都要 x67</option>
                 <option value="favorites">🌟 我的收藏</option>
-                <option value="egg">🥚 蟲卵專區</option>
-                <option value="線蟲">🪱 線蟲 </option>
-                <option value="絛蟲">🎗️ 絛蟲 </option>
-                <option value="吸蟲">🍃 吸蟲 </option>
-                <option value="原蟲">🦠 原蟲 </option>
+                <option value="egg">🥚 蟲卵專區 x19</option>
+                <option value="線蟲">🪱 線蟲 x23</option>
+                <option value="絛蟲">🎗️ 絛蟲 x12</option>
+                <option value="吸蟲">🍃 吸蟲 x15</option>
+                <option value="原蟲">🦠 原蟲 x17</option>
             </select>
 
             <p>設定題數 (跑台預設 10 題)</p>
@@ -407,6 +418,7 @@
                 <button class="btn-practice" onclick="checkStart('practice')">📝 練習模式 </button>
                 <button class="btn-flashcard" onclick="checkStart('flashcard')">🃏 翻卡記憶 </button>
                 <button class="btn-gallery" onclick="openGallery()">📖 瀏覽圖鑑</button>
+                <button class="btn-feedback" onclick="openFeedbackModal()">💬 意見回饋</button>
             </div>
         </div>
     </div>
@@ -417,6 +429,16 @@
             <button class="timer-btn btn-40s" onclick="confirmRanked(40)">40 秒 (標準)</button>
             <button class="timer-btn btn-50s" onclick="confirmRanked(50)">50 秒 (寬鬆)</button>
             <button class="timer-btn btn-cancel" onclick="closeTimerModal()">取消</button>
+        </div>
+    </div>
+
+    <div id="feedback-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">💬 匿名意見回饋</h3>
+            <p style="font-size:14px; color:#666; margin-bottom:10px;">有什麼錯誤或建議都可以說！祝考試加油！</p>
+            <textarea id="feedback-text" placeholder="輸入內容..."></textarea>
+            <button class="timer-btn btn-50s" id="btn-send-feedback" onclick="sendFeedback()">📤 送出</button>
+            <button class="timer-btn btn-cancel" onclick="closeFeedbackModal()">取消</button>
         </div>
     </div>
 
@@ -541,7 +563,7 @@
     <script>
         // ==========================================
         // 🔧 設定區 🔧
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyxzdY2x1ZqsqhE-j_xgNUN0y297YaP4IbMyCb35zsJ7FAE61RGczbbSOC1u5GUi3ykmw/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxTjTVg9kicpIHtPoRFnKQXgMNrGZdA1YnVar7uUbCzAt9hpCgWBK6CaUtlHxv1llKDLA/exec";
         
         // 變數化時間設定
         let timePerQuestion = 40; 
@@ -741,6 +763,44 @@
                 favBtn.innerText = "☆";
                 favBtn.classList.remove("active");
             }
+        }
+
+        // ★ 新增：回饋功能函式
+        function openFeedbackModal() {
+            document.getElementById('feedback-modal').style.display = 'flex';
+        }
+
+        function closeFeedbackModal() {
+            document.getElementById('feedback-modal').style.display = 'none';
+        }
+
+        function sendFeedback() {
+            const text = document.getElementById('feedback-text').value.trim();
+            const btn = document.getElementById('btn-send-feedback');
+            
+            if (!text) { alert("請輸入內容喔！"); return; }
+            
+            btn.disabled = true;
+            btn.innerText = "傳送中...";
+
+            // 傳送資料到 Google Apps Script
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: text }) // 這裡只傳 message
+            }).then(() => {
+                alert("感謝你的回饋！");
+                document.getElementById('feedback-text').value = ""; // 清空
+                closeFeedbackModal();
+                btn.disabled = false;
+                btn.innerText = "📤 送出";
+            }).catch(error => {
+                console.error(error);
+                alert("傳送失敗，請稍後再試 😢");
+                btn.disabled = false;
+                btn.innerText = "📤 送出";
+            });
         }
 
         function initializeGame(mode) {
@@ -1121,7 +1181,6 @@
             }
         }
 
-        // --- 圖鑑功能 (改為條列式表格) ---
         function openGallery() {
             document.getElementById('login-section').classList.remove('active');
             document.getElementById('gallery-section').classList.add('active');
