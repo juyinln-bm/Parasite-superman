@@ -17,43 +17,42 @@
         .login-box input, .login-box select { padding: 12px; font-size: 18px; width: 80%; border: 2px solid #ddd; border-radius: 5px; margin-bottom: 20px; }
         
         /* ========== 遊戲區域配置 (縮小版) ========== */
-        /* 1. 調整遊戲總高度與間距 */
         .game-area { 
             width: 95%;          
             max-width: 500px;    
-            height: 700px; /* 稍微加高一點點給工具列 */
+            height: 700px; 
             margin-bottom: 10px; 
             position: relative;
             display: flex;
             flex-direction: column; 
-            gap: 5px; /* 間距縮小，讓畫面更緊湊 */
+            gap: 5px; 
         }
 
-        /* 2. 新增：圖片上方的工具列 */
+        /* 工具列 */
         .tool-bar {
             width: 100%;
             display: flex;
-            justify-content: flex-end; /* 靠右對齊 */
+            justify-content: flex-end; 
             align-items: center;
             height: 35px;
             padding-right: 5px;
         }
 
-        /* 3. 修改：星星按鈕 (變成一般按鈕，不再浮在圖片上) */
+        /* 遊戲區星星按鈕 */
         .fav-btn {
-            font-size: 28px; /* 大小適中 */
+            font-size: 28px; 
             color: #ccc; 
             cursor: pointer;
             transition: transform 0.2s, color 0.2s;
-            line-height: 1; /* 修正垂直對齊 */
+            line-height: 1; 
         }
         .fav-btn:hover { transform: scale(1.1); }
         .fav-btn.active { color: #f59e0b; text-shadow: 0 0 5px rgba(245, 158, 11, 0.5); }
 
-        /* 4. 修改：圖片容器 (高度稍微縮減給工具列，移除 position:relative) */
+        /* 靜態圖片區 */
         .static-img-container {
             width: 100%;
-            height: 380px; /* 原本 400 -> 改 380 把空間讓給工具列 */
+            height: 380px; 
             background: white;
             border-radius: 15px;
             padding: 5px;        
@@ -65,7 +64,6 @@
             border: 1px solid #ddd;
             cursor: pointer;
             overflow: hidden;    
-            /* 移除 position: relative; 因為星星不在裡面了 */
         }
 
         .parasite-img { 
@@ -74,22 +72,7 @@
             object-fit: contain; 
         }
 
-        /* ★ 新增：最愛按鈕樣式 */
-        .fav-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 32px;
-            color: #ccc; /* 預設灰色 */
-            cursor: pointer;
-            z-index: 10;
-            text-shadow: 0 0 3px rgba(255,255,255,0.8);
-            transition: transform 0.2s, color 0.2s;
-        }
-        .fav-btn:hover { transform: scale(1.2); }
-        .fav-btn.active { color: #f59e0b; /* 亮黃色 */ }
-
-        /* 2. 靜態提示區 */
+        /* 靜態提示區 */
         .static-hint-area {
             height: 25px; 
             display: flex;
@@ -98,7 +81,7 @@
             width: 100%;
         }
 
-        /* 3. 下方的翻轉卡片 */
+        /* 下方的翻轉卡片 */
         .card-container {
             perspective: 600px;
             width: 100%;
@@ -237,6 +220,17 @@
         .gallery-table th { background-color: #f8f9fa; color: #333; font-weight: bold; position: sticky; top: 0; }
         .gallery-table tr:hover { background-color: #f1f1f1; }
         
+        /* ★ 圖鑑列表星星樣式 */
+        .gallery-fav {
+            cursor: pointer;
+            font-size: 1.5em;
+            color: #ccc;
+            user-select: none;
+        }
+        .gallery-fav.active {
+            color: #f59e0b;
+        }
+
         .gallery-thumb-small { width: 60px; height: 60px; object-fit: cover; border-radius: 5px; cursor: pointer; border: 1px solid #ddd; }
         
         .gallery-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: none; align-items: center; justify-content: center; flex-direction: column; }
@@ -342,7 +336,7 @@
             <p>選擇練習範圍</p>
             <select id="category-select">
                 <option value="all">🔥 我全都要 x67</option>
-                <option value="favorites">🌟 特別標記</option>
+                <option value="favorites">🌟 我的收藏</option>
                 <option value="egg">🥚 蟲卵專區 x19</option>
                 <option value="線蟲">🪱 線蟲 x23</option>
                 <option value="絛蟲">🎗️ 絛蟲 x12</option>
@@ -355,7 +349,7 @@
 
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
 
-            <p>輸入暱稱(計時才需要)</p>
+            <p>輸入暱稱</p>
             <input type="text" id="nickname" placeholder="...." maxlength="10">
             
             <div class="btn-group">
@@ -369,9 +363,9 @@
 
     <div id="timer-modal" class="modal">
         <div class="modal-content">
-            <h3 style="margin-top:0;">⏱️ 選擇秒數</h3>
+            <h3 style="margin-top:0;">⏱️ 選擇挑戰秒數</h3>
             <button class="timer-btn btn-40s" onclick="confirmRanked(40)">40 秒 (標準)</button>
-            <button class="timer-btn btn-50s" onclick="confirmRanked(50)">50 秒 (玻片動到了)</button>
+            <button class="timer-btn btn-50s" onclick="confirmRanked(50)">50 秒 (寬鬆)</button>
             <button class="timer-btn btn-cancel" onclick="closeTimerModal()">取消</button>
         </div>
     </div>
@@ -386,7 +380,7 @@
             </div>
         </div>
 
-<div class="game-area">
+        <div class="game-area">
             
             <div class="tool-bar">
                 <span style="font-size:14px; color:#888; margin-right:auto;">🔍 點擊圖片放大</span>
@@ -469,7 +463,7 @@
             <button class="btn-restart" onclick="goHome()">回到首頁 🏠</button>
         </div>
 
-        <p style="text-align:center; color:#666; font-size:0.9em;">點擊圖片可放大檢視</p>
+        <p style="text-align:center; color:#666; font-size:0.9em;">點擊圖片可放大檢視，點擊 ⭐ 可加入/取消收藏</p>
         
         <div class="gallery-filter">
             <select id="gallery-filter-select" onchange="filterGallery()">
@@ -504,22 +498,22 @@
         
         // 3. 題目資料庫 (已加入 desc 欄位)
         const database = [
-            { id: 1, type: '線蟲', img: "images/1.jpg", ans: ["Male of Angiostrongylus cantonensis", "Bursa copulatory of Angiostrongylus cantonensis", "Spicule of Angiostrongylus cantonensis"], desc: "廣東住血線蟲 L5雄蟲；前面可寫 Bursa copulatory of-, Spicule of-" },
+            { id: 1, type: '線蟲', img: "images/1.jpg", ans: ["Bursa copulatory of Angiostrongylus cantonensis", "male of Angiostrongylus cantonensis", "Spicule of Angiostrongylus cantonensis"], desc: "廣東住血線蟲 L5雄蟲；前面形容也可以寫 Male of-, Spicule of-" },
             { id: 2, type: '線蟲', img: "images/2.jpg", ans: ["Female of Angiostrongylus cantonensis", "Posterior portion of Angiostrongylus cantonensis"], desc: "廣東住血線蟲 L5雌蟲 尾部整體呈溜滑梯狀" },
-            { id: 3, type: '線蟲', img: "images/3.jpg", ans: ["Anterior end of Anisakis spp.", "boring tooth of Anisakis spp."], desc: "海獸胃線蟲 前端有boring tooth鑽洞齒，與頭端呈切線方向" },
-            { id: 4, type: '線蟲', img: "images/4.jpg", ans: ["Terminal spine of Anisakis spp."], desc: "海獸胃線蟲 尾刺與尾端垂直" },
+            { id: 3, type: '線蟲', img: "images/3.jpg", ans: ["anterior end of Anisakis spp.", "boring tooth of Anisakis spp."], desc: "海獸胃線蟲 前端有boring tooth鑽洞齒，與頭端呈切線方向" },
+            { id: 4, type: '線蟲', img: "images/4.jpg", ans: ["terminal spine of Anisakis spp."], desc: "海獸胃線蟲 尾刺與尾端垂直" },
             { id: 5, type: '線蟲', img: "images/5.jpg", ans: ["Egg of Trichuris trichiura"], desc: "鞭蟲卵 Barrel-shaped 酒桶狀、厚卵殼(轉動時會像兩條線的膜)、無橫紋" },
             { id: 6, type: '線蟲', img: "images/6.jpg", ans: ["Cyst of Trichinella spiralis"], desc: "旋毛蟲" },
             { id: 7, type: '線蟲', img: "images/7.jpg", ans: ["Adult male of Trichuris trichiura", "Male adult of Trichuris trichiura"], desc: "雄鞭蟲 頭細 尾端有尖尖的交尾刺" },
             { id: 8, type: '線蟲', img: "images/8.jpg", ans: ["Adult female of Trichuris trichiura", "Female adult of Trichuris trichiura"], desc: "雌鞭蟲成蟲 頭細 尾圓鈍" },
-            { id: 9, type: '線蟲', img: "images/9.jpg", ans: ["Egg of Enterobius vermicularis"], desc: "蟯蟲卵 雙層殼且不對稱 =  一邊扁一邊凸" },
+            { id: 9, type: '線蟲', img: "images/9.jpg", ans: ["Egg of Enterobius vermicularis"], desc: "蟯蟲卵 雙層殼且不對稱 =  一邊扁一邊凸" },
             { id: 10, type: '線蟲', img: "images/10.jpg", ans: ["Embryonated egg of Enterobius vermicularis"], desc: "蟯蟲胎蟲卵 卵殼中出現胎蟲(一或多條摺痕)" },
             { id: 11, type: '線蟲', img: "images/11.jpg", ans: ["Adult female of Enterobius vermicularis", "Female adult of Enterobius vermicularis", "adult female of enterobius vermicularis"], desc: "蟯蟲的雌成蟲 頭端兩側有角質化鼓起的側翼 顯微鏡下呈紅色" },
             { id: 12, type: '線蟲', img: "images/12.jpg", ans: ["Fertilized egg of Ascaris lumbricoides"], desc: "受精蛔蟲卵 外型圓，卵細胞顆粒細小且排列緊密，波浪狀外膜分布均勻" },
             { id: 13, type: '線蟲', img: "images/13.jpg", ans: ["Unfertilized egg of Ascaris lumbricoides"], desc: "未受精蛔蟲卵 外型橢圓，卵細胞顆粒較粗大且排列較鬆散，波浪狀外膜較不平" },
             { id: 14, type: '線蟲', img: "images/14.jpg", ans: ["Embryonated egg of Ascaris lumbricoides"], desc: "蛔蟲胎蟲卵 蟲體蜷曲在蟲卵內，再加上波浪狀外膜確定是蛔蟲" },
-            { id: 15, type: '線蟲', img: "images/15.jpg", ans: ["Embryonated egg of hookworm"], desc: "鉤蟲胎蟲卵  似蟯蟲，但蟯蟲卵殼較厚且一邊較凸一邊較扁平" },
-            { id: 16, type: '線蟲', img: "images/16.jpg", ans: ["Egg of hookworm"], desc: "鉤蟲蟲卵  似蟯蟲，但蟯蟲卵殼較厚且一邊較凸一邊較扁平" },
+            { id: 15, type: '線蟲', img: "images/15.jpg", ans: ["Embryonated egg of hookworm"], desc: "鉤蟲胎蟲卵  似蟯蟲，但蟯蟲卵殼較厚且一邊較凸一邊較扁平" },
+            { id: 16, type: '線蟲', img: "images/16.jpg", ans: ["Egg of hookworm"], desc: "鉤蟲蟲卵  似蟯蟲，但蟯蟲卵殼較厚且一邊較凸一邊較扁平" },
             { id: 17, type: '線蟲', img: "images/17.jpg", ans: ["Buccal capsule of Ancyclostoma duodenale"], desc: "看到尖牙就可以確定是十二指腸鉤蟲" },
             { id: 18, type: '線蟲', img: "images/18.jpg", ans: ["Buccal capsule of Necator americanus"], desc: "無牙齒、有倒V字形切板者為美洲鉤蟲" },
             { id: 19, type: '線蟲', img: "images/19.jpg", ans: ["Filariform larva of Strongyloides stercoralis"], desc: "糞小桿線蟲F-form 沒有外鞘結構，且末端不會形成細尖、鈍或是倒V" },
@@ -540,7 +534,7 @@
             { id: 34, type: '吸蟲', img: "images/34.jpg", ans: ["Egg of Schistosoma haematobium"], desc: "埃及血吸蟲卵 紡錘形外觀，末端有terminal spine" },
             { id: 35, type: '吸蟲', img: "images/35.jpg", ans: ["Egg of Schistosoma mansoni"], desc: "曼森血吸蟲卵 有lateral spine" },
             { id: 36, type: '吸蟲', img: "images/36.jpg", ans: ["Egg of Schistosoma japonicum"], desc: "日本血吸蟲卵 非紡錘形，也沒有spine；裡面是幼蟲，並非卵細胞，故可以以此判斷血吸蟲" },
-            { id: 37, type: '吸蟲', img: "images/37.jpg", ans: ["Adult male of Schistosoma mansoni"], desc: "曼森血吸蟲雄蟲  頭端有向外凸出的吸盤" },
+            { id: 37, type: '吸蟲', img: "images/37.jpg", ans: ["Adult male of Schistosoma mansoni"], desc: "曼森血吸蟲雄蟲  頭端有向外凸出的吸盤" },
             { id: 38, type: '吸蟲', img: "images/38.jpg", ans: ["Adult female of Schistosoma mansoni"], desc: "曼森血吸蟲雌蟲 較細長、吸盤不明顯" },
             { id: 39, type: '原蟲', img: "images/39.jpg", ans: ["Cyst of Entamoeba coli", "Cyst form of Entamoeba coli"], desc: "大腸阿米巴的囊體 5顆以上的核就能夠判斷為大腸阿米巴" },
             { id: 41, type: '原蟲', img: "images/41.jpg", ans: ["Cyst of Endolimax nana", "Cyst form of Endolimax nana"], desc: "微小阿米巴的囊體 ，四顆細胞核都像魚眼睛(??)；痢疾阿米巴的中間有機會看到兩條棒狀染色體，但微小阿米巴只會看到四顆細胞核" },
@@ -556,7 +550,7 @@
             { id: 51, type: '原蟲', img: "images/51.jpg", ans: ["Promastigote of Leishmania spp.", "Promastigote form of Leishmania spp."], desc: "利什曼蟲的前鞭毛體" },
             { id: 52, type: '原蟲', img: "images/52.jpg", ans: ["Trypomastigote of Trypanosoma spp.", "Trypomastigote form of Trypanosoma spp."], desc: "錐蟲的錐鞭毛體 背景中的圓圈是紅血球、" },
             { id: 53, type: '原蟲', img: "images/53.jpg", ans: ["Early trophozoite of Plasmodium vivax", "Early trophozoite form of Plasmodium vivax"], desc: "間日瘧原蟲早期活動體 跟其他瘧原蟲比起來,間日瘧原蟲的環較大圈" },
-            { id: 54, type: '原蟲', img: "images/54.jpg", ans: ["Mature trophozoite of Plasmodium vivax", "Mature trophozoite form of Plasmodium vivax"], desc: "間日瘧原蟲成熟的活動體 明顯的薛氏點(Schuffner’s dots),；右下為厚血液抹片 火焰狀" },
+            { id: 54, type: '原蟲', img: "images/54.jpg", ans: ["Mature trophozoite of Plasmodium vivax", "Mature trophozoite form of Plasmodium vivax"], desc: "間日瘧原蟲成熟的活動體 明顯的薛氏點(Schuffner’s dots)," },
             { id: 55, type: '原蟲', img: "images/55.jpg", ans: ["Early trophozoite of Plasmodium falciparum", "Early trophozoite form of Plasmodium falciparum"], desc: "惡性瘧原蟲早期活動體 考跑台時若是看到一個紅血球中有兩隻蟲，就寫惡性瘧原蟲、戒指環也比較小一點" },
             { id: 56, type: '原蟲', img: "images/56.jpg", ans: ["Trophozoite of Toxoplasma gondii", "Trophozoite form of Toxoplasma gondii"], desc: "弓蟲活動體" },
             { id: 57, type: '絛蟲', img: "images/57.jpg", ans: ["Egg of Diphyllobothrium latum"], desc: "廣節裂頭絛蟲的蟲卵 外觀呈橢圓、卵圓形，有許多卵細胞、頭端有裂縫=卵蓋 (微調焦距)" },
@@ -675,6 +669,18 @@
             localStorage.setItem('parasite_favs', JSON.stringify(favorites));
         }
 
+        // ★ 圖鑑頁面單獨處理收藏
+        function toggleGalleryFav(id) {
+            const index = favorites.indexOf(id);
+            if (index === -1) {
+                favorites.push(id);
+            } else {
+                favorites.splice(index, 1);
+            }
+            localStorage.setItem('parasite_favs', JSON.stringify(favorites));
+            filterGallery(); // 重新渲染圖鑑以更新星星
+        }
+
         function updateFavIcon() {
             const q = questions[currentIdx];
             const favBtn = document.getElementById('fav-btn');
@@ -705,7 +711,7 @@
 
             if (fullPool.length === 0) {
                 if (selectedType === 'favorites') {
-                    alert("您還沒有收藏任何題目喔！請在練習時點擊右上角的星星 ⭐");
+                    alert("您還沒有收藏任何題目喔！請在練習時點擊右上角的星星 ⭐ 或在圖鑑中收藏");
                 } else {
                     alert(`目前還沒有 "${selectedType}" 的題目喔！`);
                 }
@@ -1093,14 +1099,22 @@
                 return;
             }
 
-            let html = '<table class="gallery-table"><thead><tr><th style="width:50px">ID</th><th style="width:80px">圖片</th><th>名稱</th><th>特徵/描述</th></tr></thead><tbody>';
+            let html = '<table class="gallery-table"><thead><tr><th style="width:50px">收藏</th><th style="width:50px">ID</th><th style="width:80px">圖片</th><th>名稱</th><th>特徵/描述</th></tr></thead><tbody>';
             
             items.forEach(item => {
                 const descDisplay = item.desc ? item.desc : "<span style='color:#ccc; font-style:italic;'>暫無描述</span>";
-                
+                const isFav = favorites.includes(item.id);
+                const favIcon = isFav ? '★' : '☆';
+                const activeClass = isFav ? 'active' : '';
+
+                // 注意：onclick 傳遞字串時需要跳脫單引號
+                const safeTitle = item.ans[0].replace(/'/g, "\\'");
+                const safeDesc = item.desc ? item.desc.replace(/'/g, "\\'") : "";
+
                 html += `<tr>
+                    <td style="text-align:center; font-size:1.5em; cursor:pointer;" class="gallery-fav ${activeClass}" onclick="toggleGalleryFav(${item.id})">${favIcon}</td>
                     <td>${item.id}</td>
-                    <td><img src="${item.img}" class="gallery-thumb-small" onclick="showOverlay('${item.img}', '${item.ans[0].replace(/'/g, "\\'")}', '${item.desc ? item.desc.replace(/'/g, "\\'") : ""}')"></td>
+                    <td><img src="${item.img}" class="gallery-thumb-small" onclick="showOverlay('${item.img}', '${safeTitle}', '${safeDesc}')"></td>
                     <td>${item.ans[0]}</td>
                     <td>${descDisplay}</td>
                 </tr>`;
@@ -1132,7 +1146,3 @@
     </script>
 </body>
 </html>
-
-
-
-
