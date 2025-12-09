@@ -43,6 +43,7 @@
             border: 1px solid #ddd;
             cursor: pointer;
             overflow: hidden;    
+            position: relative; /* 為了放星星按鈕 */
         }
 
         .parasite-img { 
@@ -50,6 +51,21 @@
             height: 100%;        
             object-fit: contain; 
         }
+
+        /* ★ 新增：最愛按鈕樣式 */
+        .fav-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 32px;
+            color: #ccc; /* 預設灰色 */
+            cursor: pointer;
+            z-index: 10;
+            text-shadow: 0 0 3px rgba(255,255,255,0.8);
+            transition: transform 0.2s, color 0.2s;
+        }
+        .fav-btn:hover { transform: scale(1.2); }
+        .fav-btn.active { color: #f59e0b; /* 亮黃色 */ }
 
         /* 2. 靜態提示區 */
         .static-hint-area {
@@ -303,12 +319,13 @@
             
             <p>選擇練習範圍</p>
             <select id="category-select">
-                <option value="all">🔥 我全都要 x67</option>
-                <option value="egg">🥚 蟲卵專區 x19</option>
-                <option value="線蟲">🪱 線蟲 x23</option>
-                <option value="絛蟲">🎗️ 絛蟲 x12</option>
-                <option value="吸蟲">🍃 吸蟲 x15</option>
-                <option value="原蟲">🦠 原蟲 x17</option>
+                <option value="all">🔥 我全都要</option>
+                <option value="favorites">🌟 我的收藏</option>
+                <option value="egg">🥚 蟲卵專區</option>
+                <option value="線蟲">🪱 線蟲 </option>
+                <option value="絛蟲">🎗️ 絛蟲 </option>
+                <option value="吸蟲">🍃 吸蟲 </option>
+                <option value="原蟲">🦠 原蟲 </option>
             </select>
 
             <p>設定題數 (跑台預設 10 題)</p>
@@ -350,6 +367,7 @@
         <div class="game-area">
             <div class="static-img-container" onclick="onCardClick()">
                 <img src="" alt="題目圖片" class="parasite-img" id="q-image">
+                <div id="fav-btn" class="fav-btn" onclick="toggleFavorite(event)">☆</div>
             </div>
 
             <div class="static-hint-area">
@@ -429,6 +447,7 @@
         <div class="gallery-filter">
             <select id="gallery-filter-select" onchange="filterGallery()">
                 <option value="all">全部顯示</option>
+                <option value="favorites">🌟 我的收藏</option>
                 <option value="egg">🥚 蟲卵專區</option>
                 <option value="線蟲">線蟲</option>
                 <option value="絛蟲">絛蟲</option>
@@ -458,22 +477,22 @@
         
         // 3. 題目資料庫 (已加入 desc 欄位)
         const database = [
-            { id: 1, type: '線蟲', img: "images/1.jpg", ans: ["Bursa copulatory of Angiostrongylus cantonensis", "male of Angiostrongylus cantonensis", "Spicule of Angiostrongylus cantonensis"], desc: "廣東住血線蟲 L5雄蟲；前面形容也可以寫 Male of-, Spicule of-" },
+            { id: 1, type: '線蟲', img: "images/1.jpg", ans: ["Bursa copulatory of Angiostrongylus cantonensis", "male of Angiostrongylus cantonensis", "Spicule of Angiostrongylus cantonensis"], desc: "廣東住血線蟲 L5雄蟲" },
             { id: 2, type: '線蟲', img: "images/2.jpg", ans: ["Female of Angiostrongylus cantonensis", "Posterior portion of Angiostrongylus cantonensis"], desc: "廣東住血線蟲 L5雌蟲 尾部整體呈溜滑梯狀" },
             { id: 3, type: '線蟲', img: "images/3.jpg", ans: ["anterior end of Anisakis spp.", "boring tooth of Anisakis spp."], desc: "海獸胃線蟲 前端有boring tooth鑽洞齒，與頭端呈切線方向" },
             { id: 4, type: '線蟲', img: "images/4.jpg", ans: ["terminal spine of Anisakis spp."], desc: "海獸胃線蟲 尾刺與尾端垂直" },
             { id: 5, type: '線蟲', img: "images/5.jpg", ans: ["Egg of Trichuris trichiura"], desc: "鞭蟲卵 Barrel-shaped 酒桶狀、厚卵殼(轉動時會像兩條線的膜)、無橫紋" },
-            { id: 6, type: '線蟲', img: "images/6.jpg", ans: ["Cyst of Trichinella spiralis"], desc: "旋毛蟲" },
+            { id: 6, type: '線蟲', img: "images/6.jpg", ans: ["Cyst of Trichinella Spiralis"], desc: "旋毛蟲" },
             { id: 7, type: '線蟲', img: "images/7.jpg", ans: ["Adult male of Trichuris trichiura", "Male adult of Trichuris trichiura"], desc: "雄鞭蟲 頭細 尾端有尖尖的交尾刺" },
             { id: 8, type: '線蟲', img: "images/8.jpg", ans: ["Adult female of Trichuris trichiura", "Female adult of Trichuris trichiura"], desc: "雌鞭蟲成蟲 頭細 尾圓鈍" },
-            { id: 9, type: '線蟲', img: "images/9.jpg", ans: ["Egg of Enterobius vermicularis"], desc: "蟯蟲卵 雙層殼且不對稱 =  一邊扁一邊凸" },
+            { id: 9, type: '線蟲', img: "images/9.jpg", ans: ["Egg of Enterobius vermicularis"], desc: "蟯蟲卵 雙層殼且不對稱 =  一邊扁一邊凸" },
             { id: 10, type: '線蟲', img: "images/10.jpg", ans: ["Embryonated egg of Enterobius vermicularis"], desc: "蟯蟲胎蟲卵 卵殼中出現胎蟲(一或多條摺痕)" },
-            { id: 11, type: '線蟲', img: "images/11.jpg", ans: ["Adult female of Enterobius vermicularis", "Female adult of Enterobius vermicularis"], desc: "蟯蟲的雌成蟲 頭端兩側有角質化鼓起的側翼 顯微鏡下呈紅色" },
+            { id: 11, type: '線蟲', img: "images/11.jpg", ans: ["Adult female of Enterobius vermicularis", "Female adult of Enterobius vermicularis", "adult female of enterobius vermicularis"], desc: "蟯蟲的雌成蟲 頭端兩側有角質化鼓起的側翼 顯微鏡下呈紅色" },
             { id: 12, type: '線蟲', img: "images/12.jpg", ans: ["Fertilized egg of Ascaris lumbricoides"], desc: "受精蛔蟲卵 外型圓，卵細胞顆粒細小且排列緊密，波浪狀外膜分布均勻" },
             { id: 13, type: '線蟲', img: "images/13.jpg", ans: ["Unfertilized egg of Ascaris lumbricoides"], desc: "未受精蛔蟲卵 外型橢圓，卵細胞顆粒較粗大且排列較鬆散，波浪狀外膜較不平" },
             { id: 14, type: '線蟲', img: "images/14.jpg", ans: ["Embryonated egg of Ascaris lumbricoides"], desc: "蛔蟲胎蟲卵 蟲體蜷曲在蟲卵內，再加上波浪狀外膜確定是蛔蟲" },
-            { id: 15, type: '線蟲', img: "images/15.jpg", ans: ["Embryonated egg of hookworm"], desc: "鉤蟲胎蟲卵  似蟯蟲，但蟯蟲卵殼較厚且一邊較凸一邊較扁平" },
-            { id: 16, type: '線蟲', img: "images/16.jpg", ans: ["Egg of hookworm"], desc: "鉤蟲蟲卵  似蟯蟲，但蟯蟲卵殼較厚且一邊較凸一邊較扁平" },
+            { id: 15, type: '線蟲', img: "images/15.jpg", ans: ["Embryonated egg of hookworm"], desc: "鉤蟲胎蟲卵  似蟯蟲，但蟯蟲卵殼較厚且一邊較凸一邊較扁平" },
+            { id: 16, type: '線蟲', img: "images/16.jpg", ans: ["Egg of hookworm"], desc: "鉤蟲蟲卵  似蟯蟲，但蟯蟲卵殼較厚且一邊較凸一邊較扁平" },
             { id: 17, type: '線蟲', img: "images/17.jpg", ans: ["Buccal capsule of Ancyclostoma duodenale"], desc: "看到尖牙就可以確定是十二指腸鉤蟲" },
             { id: 18, type: '線蟲', img: "images/18.jpg", ans: ["Buccal capsule of Necator americanus"], desc: "無牙齒、有倒V字形切板者為美洲鉤蟲" },
             { id: 19, type: '線蟲', img: "images/19.jpg", ans: ["Filariform larva of Strongyloides stercoralis"], desc: "糞小桿線蟲F-form 沒有外鞘結構，且末端不會形成細尖、鈍或是倒V" },
@@ -494,7 +513,7 @@
             { id: 34, type: '吸蟲', img: "images/34.jpg", ans: ["Egg of Schistosoma haematobium"], desc: "埃及血吸蟲卵 紡錘形外觀，末端有terminal spine" },
             { id: 35, type: '吸蟲', img: "images/35.jpg", ans: ["Egg of Schistosoma mansoni"], desc: "曼森血吸蟲卵 有lateral spine" },
             { id: 36, type: '吸蟲', img: "images/36.jpg", ans: ["Egg of Schistosoma japonicum"], desc: "日本血吸蟲卵 非紡錘形，也沒有spine；裡面是幼蟲，並非卵細胞，故可以以此判斷血吸蟲" },
-            { id: 37, type: '吸蟲', img: "images/37.jpg", ans: ["Adult male of Schistosoma mansoni"], desc: "曼森血吸蟲雄蟲  頭端有向外凸出的吸盤" },
+            { id: 37, type: '吸蟲', img: "images/37.jpg", ans: ["Adult male of Schistosoma mansoni"], desc: "曼森血吸蟲雄蟲  頭端有向外凸出的吸盤" },
             { id: 38, type: '吸蟲', img: "images/38.jpg", ans: ["Adult female of Schistosoma mansoni"], desc: "曼森血吸蟲雌蟲 較細長、吸盤不明顯" },
             { id: 39, type: '原蟲', img: "images/39.jpg", ans: ["Cyst of Entamoeba coli", "Cyst form of Entamoeba coli"], desc: "大腸阿米巴的囊體 5顆以上的核就能夠判斷為大腸阿米巴" },
             { id: 41, type: '原蟲', img: "images/41.jpg", ans: ["Cyst of Endolimax nana", "Cyst form of Endolimax nana"], desc: "微小阿米巴的囊體 ，四顆細胞核都像魚眼睛(??)；痢疾阿米巴的中間有機會看到兩條棒狀染色體，但微小阿米巴只會看到四顆細胞核" },
@@ -510,7 +529,7 @@
             { id: 51, type: '原蟲', img: "images/51.jpg", ans: ["Promastigote of Leishmania spp.", "Promastigote form of Leishmania spp."], desc: "利什曼蟲的前鞭毛體" },
             { id: 52, type: '原蟲', img: "images/52.jpg", ans: ["Trypomastigote of Trypanosoma spp.", "Trypomastigote form of Trypanosoma spp."], desc: "錐蟲的錐鞭毛體 背景中的圓圈是紅血球、" },
             { id: 53, type: '原蟲', img: "images/53.jpg", ans: ["Early trophozoite of Plasmodium vivax", "Early trophozoite form of Plasmodium vivax"], desc: "間日瘧原蟲早期活動體 跟其他瘧原蟲比起來,間日瘧原蟲的環較大圈" },
-            { id: 54, type: '原蟲', img: "images/54.jpg", ans: ["Mature trophozoite of Plasmodium vivax", "Mature trophozoite form of Plasmodium vivax"], desc: "間日瘧原蟲成熟的活動體 明顯的薛氏點(Schuffner’s dots)," },
+            { id: 54, type: '原蟲', img: "images/54.jpg", ans: ["Mature trophozoite of Plasmodium vivax", "Mature trophozoite form of Plasmodium vivax"], desc: "間日瘧原蟲成熟的活動體 明顯的薛氏點(Schuffner’s dots),；右下為厚血液抹片 火焰狀" },
             { id: 55, type: '原蟲', img: "images/55.jpg", ans: ["Early trophozoite of Plasmodium falciparum", "Early trophozoite form of Plasmodium falciparum"], desc: "惡性瘧原蟲早期活動體 考跑台時若是看到一個紅血球中有兩隻蟲，就寫惡性瘧原蟲、戒指環也比較小一點" },
             { id: 56, type: '原蟲', img: "images/56.jpg", ans: ["Trophozoite of Toxoplasma gondii", "Trophozoite form of Toxoplasma gondii"], desc: "弓蟲活動體" },
             { id: 57, type: '絛蟲', img: "images/57.jpg", ans: ["Egg of Diphyllobothrium latum"], desc: "廣節裂頭絛蟲的蟲卵 外觀呈橢圓、卵圓形，有許多卵細胞、頭端有裂縫=卵蓋 (微調焦距)" },
@@ -530,6 +549,9 @@
 
         // ★ 新增：全域變數用來記憶每個分類的剩餘題目
         let questionStacks = {}; 
+        
+        // ★ 新增：記憶使用者的收藏清單 (從 localStorage 讀取)
+        let favorites = JSON.parse(localStorage.getItem('parasite_favs')) || [];
 
         let questions = [];
         let userRecords = [];
@@ -574,60 +596,68 @@
             document.getElementById('timer-modal').style.display = 'none';
         }
 
-        // ★ 解決方法：回到首頁不再刷新，而是切換顯示
         function goHome() {
-            // 1. 隱藏其他頁面
             document.getElementById('game-section').classList.remove('active');
             document.getElementById('summary-section').classList.remove('active');
             document.getElementById('gallery-section').classList.remove('active');
-            
-            // 2. 顯示首頁
             document.getElementById('login-section').classList.add('active');
-            
-            // 3. 清理計時器 (保險起見)
             clearInterval(timerInterval);
-            
-            // 注意：這裡不清除 questionStacks，這樣記憶才會留著
         }
 
-        // 不重複抽題核心邏輯
+        // ★ 不重複抽題核心邏輯
         function getUniqueQuestions(categoryKey, count, fullPool) {
-            // 1. 如果這個分類還沒建立堆疊，就初始化 (複製一份完整題目並洗牌)
             if (!questionStacks[categoryKey]) {
                 questionStacks[categoryKey] = shuffle([...fullPool]);
-                console.log(`[系統] 初始化 ${categoryKey} 題庫堆疊，共 ${fullPool.length} 題`);
             }
-
             let stack = questionStacks[categoryKey];
             let selected = [];
-
-            // 2. 如果堆疊裡的題目夠多，直接拿
             if (stack.length >= count) {
                 selected = stack.splice(0, count);
-                console.log(`[系統] 從 ${categoryKey} 取出 ${count} 題，剩餘 ${stack.length} 題`);
             } else {
-                // 3. 如果不夠，先拿光剩下的
-                console.log(`[系統] ${categoryKey} 題庫不足 (剩 ${stack.length}, 需 ${count})，準備重置...`);
-                selected = [...stack]; // 先拿走剩下的
+                selected = [...stack]; 
                 let needed = count - selected.length;
-
-                // 4. 重置堆疊 (重新複製並洗牌)
                 stack = shuffle([...fullPool]);
-                console.log(`[系統] 🔄 ${categoryKey} 題庫已重置！`);
-
-                // 5. 補足不夠的題目
                 if (needed > stack.length) {
-                    needed = stack.length; // 就只能拿這麼多了
+                    needed = stack.length;
                 }
-                
                 selected = selected.concat(stack.splice(0, needed));
-                
-                // 更新全域堆疊
                 questionStacks[categoryKey] = stack;
-                console.log(`[系統] 補足後，本次共 ${selected.length} 題，新堆疊剩餘 ${stack.length} 題`);
             }
-
             return selected;
+        }
+
+        // ★ 處理收藏功能
+        function toggleFavorite(event) {
+            if (event) event.stopPropagation(); // 防止觸發圖片點擊
+            const q = questions[currentIdx]; // 取得當前題目
+            const favBtn = document.getElementById('fav-btn');
+            
+            const index = favorites.indexOf(q.id);
+            if (index === -1) {
+                // 加入收藏
+                favorites.push(q.id);
+                favBtn.innerText = "★";
+                favBtn.classList.add("active");
+            } else {
+                // 移除收藏
+                favorites.splice(index, 1);
+                favBtn.innerText = "☆";
+                favBtn.classList.remove("active");
+            }
+            // 存入 localStorage
+            localStorage.setItem('parasite_favs', JSON.stringify(favorites));
+        }
+
+        function updateFavIcon() {
+            const q = questions[currentIdx];
+            const favBtn = document.getElementById('fav-btn');
+            if (favorites.includes(q.id)) {
+                favBtn.innerText = "★";
+                favBtn.classList.add("active");
+            } else {
+                favBtn.innerText = "☆";
+                favBtn.classList.remove("active");
+            }
         }
 
         function initializeGame(mode) {
@@ -639,19 +669,26 @@
                 fullPool = [...database];
             } else if (selectedType === 'egg') {
                 fullPool = database.filter(item => item.ans.some(a => a.toLowerCase().includes('egg')));
+            } else if (selectedType === 'favorites') {
+                // ★ 篩選收藏題目
+                fullPool = database.filter(item => favorites.includes(item.id));
             } else {
                 fullPool = database.filter(item => item.type === selectedType);
             }
 
             if (fullPool.length === 0) {
-                alert(`目前還沒有 "${selectedType}" 的題目喔！`);
+                if (selectedType === 'favorites') {
+                    alert("您還沒有收藏任何題目喔！請在練習時點擊右上角的星星 ⭐");
+                } else {
+                    alert(`目前還沒有 "${selectedType}" 的題目喔！`);
+                }
                 return;
             }
 
             let inputLimit = parseInt(document.getElementById('question-limit').value);
             if (isNaN(inputLimit) || inputLimit < 1) inputLimit = 10;
             
-            // ★ 關鍵修正：取最小值。如果輸入 99 但只有 68 題，就只會出 68 題
+            // 取最小值
             const finalLimit = Math.min(inputLimit, fullPool.length);
 
             document.getElementById('login-section').classList.remove('active');
@@ -662,7 +699,12 @@
             else if (mode === 'practice') modeTitle = "📝 模擬測驗";
             else modeTitle = "🃏 翻卡記憶";
 
-            document.getElementById('player-display').innerText = `${modeTitle} - ${nickname} (${selectedType === 'egg' ? '蟲卵專區' : selectedType === 'all' ? '綜合練習' : selectedType}) - 共 ${finalLimit} 題`;
+            let typeName = selectedType;
+            if(selectedType === 'egg') typeName = '蟲卵專區';
+            if(selectedType === 'all') typeName = '綜合練習';
+            if(selectedType === 'favorites') typeName = '我的收藏';
+
+            document.getElementById('player-display').innerText = `${modeTitle} - ${nickname} (${typeName}) - 共 ${finalLimit} 題`;
 
             const submitBtn = document.getElementById('submit-early-btn');
             
@@ -679,8 +721,15 @@
             }
 
             // 使用不重複抽題邏輯
-            // 現在 finalLimit 絕對 <= fullPool.length，所以直接呼叫 getUniqueQuestions 即可
-            questions = getUniqueQuestions(selectedType, finalLimit, fullPool);
+            if (fullPool.length < finalLimit) {
+                 let extendedPool = [];
+                 while(extendedPool.length < finalLimit) {
+                     extendedPool = extendedPool.concat(shuffle([...fullPool]));
+                 }
+                 questions = extendedPool.slice(0, finalLimit);
+            } else {
+                 questions = getUniqueQuestions(selectedType, finalLimit, fullPool);
+            }
 
             userRecords = [];
             currentIdx = 0;
@@ -724,6 +773,9 @@
             const q = questions[currentIdx];
             const imgEl = document.getElementById('q-image');
             imgEl.src = q.img;
+            
+            // ★ 每次換題時更新星星狀態
+            updateFavIcon();
             
             document.getElementById('progress-text').innerText = `進度：${currentIdx + 1} / ${questions.length}`;
             
@@ -998,11 +1050,13 @@
             container.innerHTML = "";
 
             let items = [];
-            // ★ 修改：圖鑑篩選邏輯，加入 egg
+            // ★ 修改：圖鑑篩選邏輯，加入 egg 與 favorites
             if (type === 'all') {
                 items = [...database];
             } else if (type === 'egg') {
                 items = database.filter(item => item.ans.some(a => a.toLowerCase().includes('egg')));
+            } else if (type === 'favorites') {
+                items = database.filter(item => favorites.includes(item.id));
             } else {
                 items = database.filter(d => d.type === type);
             }
@@ -1051,7 +1105,3 @@
     </script>
 </body>
 </html>
-
-
-
-
