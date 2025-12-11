@@ -8,7 +8,7 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding-bottom: 50px; }
         h2 { color: #333; margin: 20px 0 10px 0; }
         
-        /* ★★★ 新增：嵌入式公告樣式 ★★★ */
+        /* ★★★ 嵌入式公告樣式 ★★★ */
         #inline-announcement {
             width: 90%;
             max-width: 600px;
@@ -167,6 +167,29 @@
         /* 結果顯示 */
         .result-text { font-size: 22px; font-weight: bold; margin-bottom: 5px; } 
         .correct { color: #28a745; } .wrong { color: #dc3545; }
+        
+        /* ★★★ 新增：使用者回答的顯示樣式 ★★★ */
+        .user-ans-display {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #666;
+            background: #eee;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+            max-width: 90%;
+            word-break: break-all;
+        }
+        .user-ans-display.wrong-ans {
+            color: #dc3545;
+            text-decoration: line-through; /* 答錯加刪除線 */
+            background: #ffe6e6;
+        }
+        .user-ans-display.correct-ans {
+            color: #155724;
+            background: #d4edda;
+        }
+
         .answer-detail { font-size: 16px; color: #555; margin-bottom: 8px; width: 100%; } 
         
         /* 描述區塊樣式 */
@@ -436,7 +459,7 @@
             <input type="text" id="nickname" placeholder="...." maxlength="10">
             
             <div class="btn-group">
-                <button class="btn-start" onclick="checkStart('ranked')">🏆 跑考計時</button>
+                <button class="btn-start" onclick="checkStart('ranked')">🏆 計時挑戰</button>
                 <button class="btn-practice" onclick="checkStart('practice')">📝 練習模式 </button>
                 <button class="btn-flashcard" onclick="checkStart('flashcard')">🃏 翻卡記憶 </button>
                 <button class="btn-gallery" onclick="openGallery()">📖 瀏覽圖鑑</button>
@@ -457,7 +480,7 @@
     <div id="feedback-modal" class="modal">
         <div class="modal-content">
             <h3 style="margin-top:0;">💬 匿名意見回饋</h3>
-            <p style="font-size:14px; color:#666; margin-bottom:10px;">有什麼建議或錯誤的都可以說！(真的匿名啦)：</p>
+            <p style="font-size:14px; color:#666; margin-bottom:10px;">建議或鼓勵都可以說！</p>
             <textarea id="feedback-text" placeholder="輸入內容..."></textarea>
             <button class="timer-btn btn-50s" id="btn-send-feedback" onclick="sendFeedback()">📤 送出</button>
             <button class="timer-btn btn-cancel" onclick="closeFeedbackModal()">取消</button>
@@ -502,6 +525,8 @@
                     <div class="card__face card__face--back">
                         <div id="result-title" class="result-text"></div>
                         
+                        <div id="user-ans-display" class="user-ans-display" style="display:none;"></div>
+
                         <div class="answer-detail">
                             正確答案：<br>
                             <strong id="correct-answer" style="color: #333; font-size: 20px;"></strong>
@@ -585,14 +610,14 @@
     <script>
         // ==========================================
         // 🔧 設定區 🔧
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxTjTVg9kicpIHtPoRFnKQXgMNrGZdA1YnVar7uUbCzAt9hpCgWBK6CaUtlHxv1llKDLA/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyxzdY2x1ZqsqhE-j_xgNUN0y297YaP4IbMyCb35zsJ7FAE61RGczbbSOC1u5GUi3ykmw/exec";
         
         // 變數化時間設定
         let timePerQuestion = 40; 
         
         // ★★★ 公告內容設定區 ★★★
         const CURRENT_ANNOUNCEMENT = {
-            message: "⚠️ 哈哈回饋系統一直是壞掉的 現在才修好" // <--- 只要改這裡的文字，網頁上就會更新
+            message: "⚠️大家加油！再撐一下！" 
         };
 
         // 3. 題目資料庫
@@ -605,14 +630,14 @@
             { id: 6, type: '線蟲', img: "images/6.jpg", ans: ["Cyst of Trichinella spiralis"], desc: "旋毛蟲" },
             { id: 7, type: '線蟲', img: "images/7.jpg", ans: ["Adult male of Trichuris trichiura", "Male adult of Trichuris trichiura"], desc: "雄鞭蟲 頭細 尾端有尖尖的交尾刺" },
             { id: 8, type: '線蟲', img: "images/8.jpg", ans: ["Adult female of Trichuris trichiura", "Female adult of Trichuris trichiura"], desc: "雌鞭蟲成蟲 頭細 尾圓鈍" },
-            { id: 9, type: '線蟲', img: "images/9.jpg", ans: ["Egg of Enterobius vermicularis"], desc: "蟯蟲卵 雙層殼且不對稱 =  一邊扁一邊凸" },
+            { id: 9, type: '線蟲', img: "images/9.jpg", ans: ["Egg of Enterobius vermicularis"], desc: "蟯蟲卵 雙層殼且不對稱 =  一邊扁一邊凸" },
             { id: 10, type: '線蟲', img: "images/10.jpg", ans: ["Embryonated egg of Enterobius vermicularis"], desc: "蟯蟲胎蟲卵 卵殼中出現胎蟲(一或多條摺痕)" },
             { id: 11, type: '線蟲', img: "images/11.jpg", ans: ["Adult female of Enterobius vermicularis", "Female adult of Enterobius vermicularis", "adult female of enterobius vermicularis"], desc: "蟯蟲的雌成蟲 頭端兩側有角質化鼓起的側翼 顯微鏡下呈紅色" },
             { id: 12, type: '線蟲', img: "images/12.jpg", ans: ["Fertilized egg of Ascaris lumbricoides"], desc: "受精蛔蟲卵 外型圓，卵細胞顆粒細小且排列緊密，波浪狀外膜分布均勻" },
             { id: 13, type: '線蟲', img: "images/13.jpg", ans: ["Unfertilized egg of Ascaris lumbricoides"], desc: "未受精蛔蟲卵 外型橢圓，卵細胞顆粒較粗大且排列較鬆散，波浪狀外膜較不平" },
             { id: 14, type: '線蟲', img: "images/14.jpg", ans: ["Embryonated egg of Ascaris lumbricoides"], desc: "蛔蟲胎蟲卵 蟲體蜷曲在蟲卵內，再加上波浪狀外膜確定是蛔蟲" },
-            { id: 15, type: '線蟲', img: "images/15.jpg", ans: ["Embryonated egg of hookworm"], desc: "鉤蟲胎蟲卵  似蟯蟲，但蟯蟲卵殼較厚且一邊較凸一邊較扁平" },
-            { id: 16, type: '線蟲', img: "images/16.jpg", ans: ["Egg of hookworm"], desc: "鉤蟲蟲卵  似蟯蟲，但蟯蟲卵殼較厚且一邊較凸一邊較扁平" },
+            { id: 15, type: '線蟲', img: "images/15.jpg", ans: ["Embryonated egg of hookworm"], desc: "鉤蟲胎蟲卵  似蟯蟲，但蟯蟲卵殼較厚且一邊較凸一邊較扁平" },
+            { id: 16, type: '線蟲', img: "images/16.jpg", ans: ["Egg of hookworm"], desc: "鉤蟲蟲卵  似蟯蟲，但蟯蟲卵殼較厚且一邊較凸一邊較扁平" },
             { id: 17, type: '線蟲', img: "images/17.jpg", ans: ["Buccal capsule of Ancylostoma duodenale"], desc: "看到尖牙就可以確定是十二指腸鉤蟲" },
             { id: 18, type: '線蟲', img: "images/18.jpg", ans: ["Buccal capsule of Necator americanus"], desc: "無牙齒、有倒V字形切板者為美洲鉤蟲" },
             { id: 19, type: '線蟲', img: "images/19.jpg", ans: ["Filariform larva of Strongyloides stercoralis"], desc: "糞小桿線蟲F-form 沒有外鞘結構，且末端不會形成細尖、鈍或是倒V" },
@@ -620,7 +645,7 @@
             { id: 21, type: '線蟲', img: "images/21.jpg", ans: ["Filariform larva of Ancylostoma duodenale"], desc: "十二指腸鉤蟲F-form 有外鞘+但不具有橫紋" },
             { id: 22, type: '線蟲', img: "images/22.jpg", ans: ["Microfilaria of Wuchereria bancrofti"], desc: "班氏絲蟲微絲蟲 蟲體捲曲度不大" },
             { id: 23, type: '線蟲', img: "images/23.jpg", ans: ["Microfilaria of Brugia malayi"], desc: "馬來絲蟲微絲蟲 非常捲曲" },
-            { id: 24, type: '吸蟲', img: "images/24.jpg", ans: ["Egg of Fasciolopsis buski"], desc: "薑片蟲蟲卵 長橢圓形，淡黃色或黃色，薄殼，內部有一顆一顆的卵細胞" },
+            { id: 24, type: '吸蟲', img: "images/24.jpg", ans: ["Egg of Fasciolopsis Buski"], desc: "薑片蟲蟲卵 長橢圓形，淡黃色或黃色，薄殼，內部有一顆一顆的卵細胞" },
             { id: 25, type: '吸蟲', img: "images/25.jpg", ans: ["Adult worm of Fasciolopsis buski"], desc: "薑片蟲成蟲 腸道最大隻的吸蟲(只能看到約2/3的蟲體)" },
             { id: 26, type: '吸蟲', img: "images/26.jpg", ans: ["Adult worm of Metagonimus yokogawai"], desc: "橫川異形吸蟲成蟲 中間藍色卵巢(?) 尾端兩顆淡黃藍圓睪丸 " },
             { id: 27, type: '吸蟲', img: "images/27.jpg", ans: ["Adult worm of Echinostoma revolutum"], desc: "外旋棘口吸蟲成蟲 腹吸盤在中間靠前" },
@@ -747,6 +772,7 @@
                 selected = [...stack]; 
                 let needed = count - selected.length;
                 stack = shuffle([...fullPool]);
+                console.log(`[系統] 🔄 ${categoryKey} 題庫已耗盡，重新洗牌！`);
                 if (needed > stack.length) {
                     needed = stack.length;
                 }
@@ -776,6 +802,9 @@
             }
             // 存入 localStorage
             localStorage.setItem('parasite_favs', JSON.stringify(favorites));
+
+            // ★ 修正：更新收藏後，強制讓 'favorites' 堆疊失效，下次才會重抓最新的
+            delete questionStacks['favorites'];
         }
 
         // ★ 圖鑑頁面單獨處理收藏
@@ -787,6 +816,7 @@
                 favorites.splice(index, 1);
             }
             localStorage.setItem('parasite_favs', JSON.stringify(favorites));
+            delete questionStacks['favorites']; // 同步清除堆疊
             filterGallery(); // 重新渲染圖鑑以更新星星
         }
 
@@ -827,7 +857,7 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ message: text }) // 這裡只傳 message
             }).then(() => {
-                alert("謝謝回饋～　祝考試順利！");
+                alert("謝謝回饋　祝考試加油");
                 document.getElementById('feedback-text').value = ""; // 清空
                 closeFeedbackModal();
                 btn.disabled = false;
@@ -968,10 +998,31 @@
             const quizHint = document.getElementById('quiz-hint');
             const inputArea = document.getElementById('input-area');
             
+            // ★ 新增：取得顯示使用者答案的區塊
+            const userAnsDisplay = document.getElementById('user-ans-display');
+
             document.getElementById('prev-btn').disabled = (currentIdx === 0);
             
             const descText = q.desc ? `特徵：${q.desc}` : ""; 
             descEl.innerText = descText;
+
+            // ★ 強制設定介面狀態 (修復：不管是不是新題目，都要依照模式設定介面)
+            if (currentMode === 'flashcard') {
+                inputArea.style.display = "none";
+                quizHint.style.display = "none";
+                flashcardHint.style.display = "block"; 
+                card.style.cursor = "pointer"; 
+                document.getElementById('result-title').style.display = "none"; 
+                document.getElementById('correct-answer').innerText = q.ans[0];
+                userAnsDisplay.style.display = 'none'; // 翻卡模式不需要顯示輸入
+            } else {
+                inputArea.style.display = "block";
+                quizHint.style.display = "block"; 
+                flashcardHint.style.display = "none";
+                card.style.cursor = "default"; 
+                document.getElementById('result-title').style.display = "block";
+                setTimeout(() => inputEl.focus(), 300);
+            }
 
             if (answeredRecord) {
                 card.classList.add('is-flipped'); 
@@ -985,6 +1036,19 @@
                     resultTitle.innerHTML = answeredRecord.userAnswer === "(時間到)" ? "⏰ 時間到" : "❌ 答錯了！";
                     resultTitle.className = "result-text wrong";
                 }
+                
+                // ★ 顯示使用者答案
+                if (currentMode !== 'flashcard') {
+                    userAnsDisplay.style.display = 'block';
+                    userAnsDisplay.innerText = `你的回答：${answeredRecord.userAnswer}`;
+                    // 設定樣式
+                    if (answeredRecord.isCorrect) {
+                        userAnsDisplay.className = 'user-ans-display correct-ans';
+                    } else {
+                        userAnsDisplay.className = 'user-ans-display wrong-ans';
+                    }
+                }
+
                 document.getElementById('correct-answer').innerText = answeredRecord.correctAnswers;
                 
                 clearInterval(timerInterval);
@@ -996,23 +1060,9 @@
                 card.classList.remove('is-flipped'); 
                 inputEl.value = "";
                 inputEl.disabled = false;
+                userAnsDisplay.style.display = 'none'; // 重置時隱藏
                 
-                if (currentMode === 'flashcard') {
-                    inputArea.style.display = "none";
-                    quizHint.style.display = "none";
-                    flashcardHint.style.display = "block"; 
-                    card.style.cursor = "pointer"; 
-                    document.getElementById('result-title').style.display = "none"; 
-                    document.getElementById('correct-answer').innerText = q.ans[0];
-                    descEl.innerText = descText; 
-                } else {
-                    inputArea.style.display = "block";
-                    quizHint.style.display = "block"; 
-                    flashcardHint.style.display = "none";
-                    card.style.cursor = "default"; 
-                    document.getElementById('result-title').style.display = "block";
-                    
-                    setTimeout(() => inputEl.focus(), 300);
+                if (currentMode !== 'flashcard') {
                     if (currentMode === 'ranked') startTimer();
                 }
             }
@@ -1049,6 +1099,7 @@
 
             const inputEl = document.getElementById('user-input');
             const userVal = inputEl.value.trim().toLowerCase();
+            const rawUserVal = inputEl.value; // 保留原始輸入
             inputEl.disabled = true;
 
             let correctVals = questions[currentIdx].ans;
@@ -1059,7 +1110,7 @@
             if (userRecords.length === currentIdx) {
                 userRecords.push({
                     question: questions[currentIdx],
-                    userAnswer: isTimeOut ? "(時間到)" : userVal,
+                    userAnswer: isTimeOut ? "(時間到)" : rawUserVal, // 存原始輸入
                     isCorrect: isCorrect && !isTimeOut,
                     correctAnswers: correctVals[0]
                 });
@@ -1073,6 +1124,16 @@
             } else {
                 resultTitle.innerHTML = isTimeOut ? "⏰ 時間到！" : "❌ 答錯了！";
                 resultTitle.className = "result-text wrong";
+            }
+
+            // ★ 更新背面顯示的使用者答案
+            const userAnsDisplay = document.getElementById('user-ans-display');
+            userAnsDisplay.style.display = 'block';
+            userAnsDisplay.innerText = `你的回答：${isTimeOut ? "(時間到)" : rawUserVal}`;
+            if (isCorrect && !isTimeOut) {
+                userAnsDisplay.className = 'user-ans-display correct-ans';
+            } else {
+                userAnsDisplay.className = 'user-ans-display wrong-ans';
             }
 
             document.getElementById('correct-answer').innerText = correctVals[0];
@@ -1151,6 +1212,7 @@
             userRecords.forEach((record, index) => {
                 const item = document.createElement('div');
                 item.className = record.isCorrect ? "summary-item" : "summary-item item-wrong";
+                // 個人成績單也加上特徵描述
                 const descText = record.question.desc ? `<br><span style="font-size:0.9em; color:#856404; background:#fff3cd; padding:2px 5px; border-radius:3px;">${record.question.desc}</span>` : "";
 
                 item.innerHTML = `
@@ -1218,6 +1280,7 @@
             }
         }
 
+        // --- 圖鑑功能 (改為條列式表格) ---
         function openGallery() {
             document.getElementById('login-section').classList.remove('active');
             document.getElementById('gallery-section').classList.add('active');
@@ -1230,7 +1293,7 @@
             container.innerHTML = "";
 
             let items = [];
-            // ★ 修改：圖鑑篩選邏輯，加入 egg 與 favorites
+            // ★ 修改：圖鑑篩選邏輯，加入 egg
             if (type === 'all') {
                 items = [...database];
             } else if (type === 'egg') {
@@ -1298,8 +1361,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
