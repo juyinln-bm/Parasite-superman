@@ -12,15 +12,15 @@
         #inline-announcement {
             width: 90%;
             max-width: 600px;
-            background-color: rgba(255, 255, 255, 0.6); /* 半透明白底 */
+            background-color: rgba(255, 255, 255, 0.6);
             border: 1px solid #e0e0e0;
             color: #555;
             padding: 8px 15px;
             border-radius: 8px;
             text-align: center;
             font-size: 13px;
-            margin-bottom: 15px; /* 與下方登入框的距離 */
-            display: none; /* 預設隱藏，有內容才顯示 */
+            margin-bottom: 15px;
+            display: none;
             line-height: 1.5;
         }
 
@@ -129,7 +129,7 @@
             align-items: center; 
             justify-content: center; 
             background: white; 
-            padding: 12px; 
+            padding: 10px; /* 稍微縮小內距 */
             box-sizing: border-box; 
         }
         
@@ -164,17 +164,17 @@
 
         .btn-restart { background-color: #17a2b8; margin-top: 10px; }
 
-        /* 結果顯示 */
-        .result-text { font-size: 22px; font-weight: bold; margin-bottom: 5px; } 
+        /* ★★★ 修改：結果標題縮小 ★★★ */
+        .result-text { font-size: 20px; font-weight: bold; margin-bottom: 5px; } 
         .correct { color: #28a745; } .wrong { color: #dc3545; }
         
-        /* ★★★ 新增：使用者回答的顯示樣式 ★★★ */
+        /* ★★★ 修改：使用者回答縮小 ★★★ */
         .user-ans-display {
-            font-size: 16px;
-            margin-bottom: 10px;
+            font-size: 14px; /* 原本 16px */
+            margin-bottom: 5px; /* 原本 10px */
             color: #666;
             background: #eee;
-            padding: 5px 10px;
+            padding: 4px 8px; /* 內距縮小 */
             border-radius: 5px;
             display: inline-block;
             max-width: 90%;
@@ -182,7 +182,7 @@
         }
         .user-ans-display.wrong-ans {
             color: #dc3545;
-            text-decoration: line-through; /* 答錯加刪除線 */
+            text-decoration: line-through; 
             background: #ffe6e6;
         }
         .user-ans-display.correct-ans {
@@ -190,9 +190,11 @@
             background: #d4edda;
         }
 
-        .answer-detail { font-size: 16px; color: #555; margin-bottom: 8px; width: 100%; } 
+        /* ★★★ 修改：正確答案字體縮小 ★★★ */
+        .answer-detail { font-size: 14px; color: #555; margin-bottom: 5px; width: 100%; } 
+        #correct-answer { font-size: 18px !important; } /* 原本 20px */
         
-        /* 描述區塊樣式 */
+        /* ★★★ 修改：特徵描述區加大佔比 ★★★ */
         .desc-box {
             background-color: #fff3cd;
             border: 1px solid #ffeeba;
@@ -203,7 +205,8 @@
             margin-bottom: 8px;
             text-align: left;
             width: 100%;
-            flex: 1; 
+            flex: 2; /* ★ 讓它佔據更多剩餘空間 */
+            min-height: 60px; /* 確保至少有高度 */
             overflow-y: auto;
         }
 
@@ -318,7 +321,6 @@
             border-radius: 3px;
             margin-bottom: 3px;
         }
-
 
         /* 排行榜表格 */
         #leaderboard-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -480,7 +482,7 @@
     <div id="feedback-modal" class="modal">
         <div class="modal-content">
             <h3 style="margin-top:0;">💬 匿名意見回饋</h3>
-            <p style="font-size:14px; color:#666; margin-bottom:10px;">建議或鼓勵都可以說！</p>
+            <p style="font-size:14px; color:#666; margin-bottom:10px;">建議或鼓勵回饋都可以！：</p>
             <textarea id="feedback-text" placeholder="輸入內容..."></textarea>
             <button class="timer-btn btn-50s" id="btn-send-feedback" onclick="sendFeedback()">📤 送出</button>
             <button class="timer-btn btn-cancel" onclick="closeFeedbackModal()">取消</button>
@@ -529,7 +531,7 @@
 
                         <div class="answer-detail">
                             正確答案：<br>
-                            <strong id="correct-answer" style="color: #333; font-size: 20px;"></strong>
+                            <strong id="correct-answer" style="color: #333;"></strong>
                         </div>
                         
                         <div id="ans-desc" class="desc-box">
@@ -617,7 +619,7 @@
         
         // ★★★ 公告內容設定區 ★★★
         const CURRENT_ANNOUNCEMENT = {
-            message: "⚠️大家加油！再撐一下！" 
+            message: "⚠️ 大家加油！！再撐一下！" 
         };
 
         // 3. 題目資料庫
@@ -857,7 +859,7 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ message: text }) // 這裡只傳 message
             }).then(() => {
-                alert("謝謝回饋　祝考試加油");
+                alert("感謝您的回饋！祝考試順利!");
                 document.getElementById('feedback-text').value = ""; // 清空
                 closeFeedbackModal();
                 btn.disabled = false;
@@ -1212,7 +1214,6 @@
             userRecords.forEach((record, index) => {
                 const item = document.createElement('div');
                 item.className = record.isCorrect ? "summary-item" : "summary-item item-wrong";
-                // 個人成績單也加上特徵描述
                 const descText = record.question.desc ? `<br><span style="font-size:0.9em; color:#856404; background:#fff3cd; padding:2px 5px; border-radius:3px;">${record.question.desc}</span>` : "";
 
                 item.innerHTML = `
@@ -1254,9 +1255,10 @@
             const tbody = document.getElementById('rank-body');
             tbody.innerHTML = "";
             
-            const top5 = data.slice(0, 5); 
+            // ★ 修改：顯示前 10 名
+            const top10 = data.slice(0, 10); 
 
-            top5.forEach((row, index) => {
+            top10.forEach((row, index) => {
                 let rankClass = "";
                 if(index === 0) rankClass = "rank-1";
                 if(index === 1) rankClass = "rank-2";
@@ -1280,7 +1282,6 @@
             }
         }
 
-        // --- 圖鑑功能 (改為條列式表格) ---
         function openGallery() {
             document.getElementById('login-section').classList.remove('active');
             document.getElementById('gallery-section').classList.add('active');
@@ -1293,7 +1294,6 @@
             container.innerHTML = "";
 
             let items = [];
-            // ★ 修改：圖鑑篩選邏輯，加入 egg
             if (type === 'all') {
                 items = [...database];
             } else if (type === 'egg') {
