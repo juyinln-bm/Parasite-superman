@@ -1,0 +1,2723 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>皮克斯風格 3D 眼球共軛、輻輳運動與 CN III / IV / VI 損傷模擬</title>
+  <style>
+    :root {
+      --bg-pure: #ffffff;
+      --bg-soft: #f6f4ef;
+      --panel-bg: rgba(252, 250, 247, 0.94);
+      --panel-border: rgba(175, 167, 157, 0.55);
+      --card-bg: rgba(243, 240, 234, 0.92);
+
+      --text-main: #33302c;
+      --text-sub: #6e685f;
+      --text-muted: #999288;
+
+      --morandi-blue: #527988;       /* 橋腦 PPRF / CN VI */
+      --morandi-ochre: #c28242;      /* 額葉 FEF / 單步焦點 */
+      --morandi-mauve: #846494;      /* 內側縱束 MLF / CN IV */
+      --morandi-sage: #53846d;       /* 動眼神經 CN III / 正常狀態 */
+      --morandi-rose: #bf5e5a;       /* 眼外肌收縮 / 病灶警示 */
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'PingFang TC', 'Microsoft JhengHei', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at 55% 42%, #ffffff 0%, #f4f1ea 100%);
+      color: var(--text-main);
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #canvas-container {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      cursor: grab;
+    }
+
+    #canvas-container:active {
+      cursor: grabbing;
+    }
+
+    /* SVG 動態引線層 */
+    #callout-svg {
+      position: absolute;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 2;
+      overflow: visible;
+    }
+
+    .leader-line {
+      fill: none;
+      stroke: #9c9488;
+      stroke-width: 1.25;
+      stroke-dasharray: 3, 2;
+      transition: opacity 0.2s ease, stroke 0.2s ease, stroke-width 0.2s ease;
+    }
+
+    .leader-line.active-line {
+      stroke: var(--morandi-ochre);
+      stroke-width: 1.75;
+      stroke-dasharray: none;
+    }
+
+    .leader-line.frontier-line {
+      stroke: #ad6218;
+      stroke-width: 2.3;
+      stroke-dasharray: none;
+    }
+
+    .leader-line.lesion-line {
+      stroke: var(--morandi-rose);
+      stroke-width: 2.1;
+      stroke-dasharray: none;
+    }
+
+    .leader-dot {
+      fill: #9c9488;
+      stroke: #ffffff;
+      stroke-width: 1.2;
+      transition: opacity 0.2s ease, fill 0.2s ease, r 0.2s ease;
+    }
+
+    .leader-dot.active-dot {
+      fill: var(--morandi-ochre);
+    }
+
+    .leader-dot.frontier-dot {
+      fill: #ad6218;
+      r: 4.2;
+    }
+
+    .leader-dot.lesion-dot {
+      fill: var(--morandi-rose);
+      r: 4.2;
+    }
+
+    /* 3D 外置浮動標籤層 (方正緊湊工程銘牌風) */
+    #labels-container {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 3;
+      overflow: hidden;
+    }
+
+    .node-label {
+      position: absolute;
+      transform: translate(-50%, -50%) scale(1);
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid #cfc8be;
+      border-left: 3px solid #9c9488;
+      backdrop-filter: blur(6px);
+      padding: 2.5px 7px;
+      border-radius: 3px;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      opacity: 1;
+      transition: opacity 0.2s ease,
+                  transform 0.2s ease,
+                  background 0.2s,
+                  border-color 0.2s,
+                  box-shadow 0.2s;
+      box-shadow: 0 2px 8px rgba(80, 72, 64, 0.08);
+    }
+
+    .node-label.hidden-label {
+      opacity: 0 !important;
+      transform: translate(-50%, -50%) scale(0.82) !important;
+      pointer-events: none;
+    }
+
+    .node-label.dimmed-label {
+      opacity: 0.28;
+      transform: translate(-50%, -50%) scale(0.92);
+      background: rgba(248, 246, 242, 0.72);
+      border-color: #e2dcd5;
+      box-shadow: none;
+    }
+
+    .node-label.active {
+      background: #fffdf9;
+      border-color: #dec09e;
+      border-left: 3px solid var(--morandi-ochre);
+      color: #422f1b;
+      box-shadow: 0 3px 10px rgba(194, 130, 66, 0.16);
+      z-index: 5;
+    }
+
+    @keyframes frontierPulse {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(194, 130, 66, 0.45), 0 4px 14px rgba(194, 130, 66, 0.26);
+        transform: translate(-50%, -50%) scale(1.06);
+      }
+      50% {
+        box-shadow: 0 0 0 4px rgba(194, 130, 66, 0), 0 6px 18px rgba(194, 130, 66, 0.34);
+        transform: translate(-50%, -50%) scale(1.09);
+      }
+    }
+
+    .node-label.current-frontier {
+      background: #fff9ec;
+      border: 1px solid #ad6218;
+      border-left: 3.5px solid #ad6218;
+      color: #361f08;
+      z-index: 8;
+      animation: frontierPulse 1.4s infinite ease-in-out;
+    }
+
+    .node-label.lesion {
+      background: #fff5f5;
+      border: 1px solid var(--morandi-rose);
+      border-left: 3.5px solid var(--morandi-rose);
+      color: #782522;
+      box-shadow: 0 4px 12px rgba(191, 94, 90, 0.26);
+      transform: translate(-50%, -50%) scale(1.05);
+      z-index: 9;
+    }
+
+    .node-label.downstream-blocked {
+      background: rgba(242, 239, 234, 0.9);
+      border: 1px dashed #c48b88;
+      border-left: 3px solid #9c9288;
+      color: #7d746b;
+      opacity: 0.88;
+    }
+
+    .step-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--morandi-ochre);
+      color: #ffffff;
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 1px 4.5px;
+      border-radius: 2px;
+      line-height: 1.15;
+    }
+
+    .node-label.current-frontier .step-badge {
+      background: #ad6218;
+    }
+
+    .node-label.lesion .step-badge {
+      background: var(--morandi-rose);
+    }
+
+    .node-label.downstream-blocked .step-badge {
+      background: #9c9288;
+    }
+
+    .side-badge {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      padding: 3px 10px;
+      background: rgba(238, 244, 246, 0.9);
+      border: 1px solid #9ab3bd;
+      border-left: 3px solid var(--morandi-blue);
+      color: #385866;
+    }
+
+    /* =======================================================
+       左側方正緊湊控制欄
+       ======================================================= */
+    .ui-sidebar {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      max-height: calc(100vh - 24px);
+      width: 274px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(14px);
+      border-radius: 4px;
+      padding: 10px 11px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+      box-shadow: 0 8px 24px rgba(90, 82, 74, 0.1);
+    }
+
+    .ui-sidebar.collapsed .panel-body {
+      display: none;
+    }
+
+    .ui-sidebar::-webkit-scrollbar {
+      width: 4px;
+    }
+    .ui-sidebar::-webkit-scrollbar-thumb {
+      background: rgba(140, 130, 120, 0.28);
+      border-radius: 2px;
+    }
+
+    .panel-body {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .header-box {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(180, 172, 162, 0.32);
+      padding-bottom: 6px;
+      gap: 6px;
+    }
+
+    .badge-pixar {
+      display: inline-block;
+      background: var(--morandi-blue);
+      color: #ffffff;
+      padding: 1.5px 6px;
+      border-radius: 2px;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    h1 {
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.25;
+      color: var(--text-main);
+    }
+
+    .collapse-btn {
+      background: #eae5dd;
+      border: 1px solid #d1c9be;
+      color: var(--text-sub);
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .section-title {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+    }
+
+    .btn-list {
+      display: flex;
+      flex-direction: column;
+      gap: 3.5px;
+    }
+
+    button {
+      background: #f3f0ea;
+      border: 1px solid #d8d0c5;
+      color: var(--text-main);
+      padding: 5px 7px;
+      border-radius: 3px;
+      font-size: 10.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    button:hover:not(:disabled) {
+      background: #e8e2d9;
+      border-color: #b5aba0;
+    }
+
+    button:disabled {
+      opacity: 0.38;
+      cursor: not-allowed;
+    }
+
+    button.active-gaze {
+      background: #e3eef2;
+      border-color: var(--morandi-blue);
+      border-left: 3px solid var(--morandi-blue);
+      color: #24424f;
+    }
+
+    button.active-lesion {
+      background: #fae8e8;
+      border-color: var(--morandi-rose);
+      border-left: 3px solid var(--morandi-rose);
+      color: #732623;
+    }
+
+    button.active-normal {
+      background: #e5f0ea;
+      border-color: var(--morandi-sage);
+      border-left: 3px solid var(--morandi-sage);
+      color: #264a3a;
+    }
+
+    .full-span-btn {
+      grid-column: span 2;
+      justify-content: center;
+      background: #efeae2;
+      border-color: #cbbba8;
+      color: #4a3823;
+    }
+
+    .full-span-btn.active-gaze {
+      background: #f7ede0;
+      border-color: var(--morandi-ochre);
+      border-left: 3px solid var(--morandi-ochre);
+      color: #593512;
+    }
+
+    .slider-box {
+      background: var(--card-bg);
+      padding: 5px 8px;
+      border-radius: 3px;
+      border: 1px solid #dfdad0;
+      margin-top: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .slider-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-sub);
+      min-width: 52px;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      height: 4px;
+      accent-color: var(--morandi-blue);
+      cursor: pointer;
+    }
+
+    .vergence-highlight {
+      border-color: var(--morandi-ochre);
+      background: #fcf6ec;
+    }
+
+    .vergence-highlight input[type="range"] {
+      accent-color: var(--morandi-ochre);
+    }
+
+    /* 內嵌式緊湊單步推進器 */
+    .seq-box {
+      background: var(--card-bg);
+      border: 1px solid #d8d0c5;
+      border-radius: 3px;
+      padding: 6px 7px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .seq-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+    }
+
+    .seq-title-tag {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--text-sub);
+    }
+
+    .seq-transport {
+      display: flex;
+      gap: 3px;
+    }
+
+    .seq-btn {
+      padding: 2.5px 6px;
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 2px;
+      background: #ffffff;
+      border: 1px solid #cfc7bc;
+      justify-content: center;
+    }
+
+    .seq-btn.playing {
+      background: #f7ede0;
+      border-color: var(--morandi-ochre);
+      color: #6e461f;
+    }
+
+    .seq-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 3px;
+    }
+
+    .st-cell {
+      padding: 3.5px 2px;
+      border-radius: 2px;
+      background: #ece8e0;
+      border: 1px solid #d6cfc4;
+      color: var(--text-sub);
+      font-size: 10px;
+      font-weight: 800;
+      text-align: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .st-cell.reached {
+      background: #f9f2e4;
+      border-color: #d6b285;
+      color: #593e22;
+    }
+
+    .st-cell.current {
+      background: #c28242;
+      border-color: #9e6328;
+      color: #ffffff;
+    }
+
+    .st-cell.lesion-stop {
+      background: #fae6e6;
+      border-color: var(--morandi-rose);
+      color: #7f2926;
+    }
+
+    .steps-list-container {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      max-height: 145px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .steps-list-container::-webkit-scrollbar {
+      width: 3px;
+    }
+    .steps-list-container::-webkit-scrollbar-thumb {
+      background: rgba(140, 130, 120, 0.25);
+    }
+
+    .step-item {
+      padding: 3.5px 6px 3.5px 7px;
+      border-left: 2.5px solid var(--morandi-blue);
+      background: rgba(255, 255, 255, 0.58);
+      color: var(--text-main);
+      font-size: 10.5px;
+      line-height: 1.36;
+      border-radius: 0 2px 2px 0;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .step-item:hover {
+      background: rgba(255, 255, 255, 0.92);
+    }
+
+    .step-item.current-step-row {
+      background: #fff8eb;
+      border-left: 3px solid #ad6218;
+      font-weight: 700;
+      color: #361f08;
+    }
+
+    .step-item.future-step-row {
+      opacity: 0.38;
+      border-left-color: #cbbfa8;
+    }
+
+    .step-item.blocked {
+      border-left-color: var(--morandi-rose);
+      color: #872f2b;
+      background: rgba(191, 94, 90, 0.09);
+    }
+
+    /* =======================================================
+       右上角方正緊湊視角與標籤設定欄
+       ======================================================= */
+    .top-right-bar {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-end;
+      width: 248px;
+    }
+
+    .cam-group {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 4px;
+      width: 100%;
+      background: var(--panel-bg);
+      padding: 5px;
+      border-radius: 4px;
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 16px rgba(90, 82, 74, 0.08);
+    }
+
+    .cam-btn {
+      padding: 4px 5px;
+      font-size: 10.5px;
+      border-radius: 2px;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .label-settings-box {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(14px);
+      padding: 9px 10px;
+      border-radius: 4px;
+      width: 100%;
+      box-shadow: 0 8px 22px rgba(90, 82, 74, 0.09);
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .label-settings-box.collapsed .right-panel-body {
+      display: none;
+    }
+
+    .right-panel-body {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .mode-segmented {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+    }
+
+    .mode-btn {
+      padding: 4px 6px;
+      font-size: 10.5px;
+      border-radius: 2px;
+      justify-content: center;
+      text-align: center;
+      background: #f3f0ea;
+    }
+
+    .mode-btn.active-mode {
+      background: #f7ede0;
+      border-color: var(--morandi-ochre);
+      color: #633d18;
+      font-weight: 700;
+    }
+
+    .filter-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .chip-btn {
+      padding: 3px 6px;
+      font-size: 10px;
+      border-radius: 2px;
+      background: #f3f0ea;
+      border: 1px solid #d8d0c5;
+      color: var(--text-muted);
+      gap: 3px;
+    }
+
+    .chip-btn.chip-on {
+      background: #e3eef2;
+      border-color: #82a8b8;
+      color: #294957;
+    }
+
+    .legend-compact {
+      border-top: 1px solid rgba(180, 172, 162, 0.3);
+      padding-top: 6px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3px 6px;
+      font-size: 9.5px;
+      color: var(--text-sub);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 1px;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .hint-footer {
+      position: absolute;
+      bottom: 10px;
+      right: 12px;
+      z-index: 5;
+      background: rgba(252, 250, 247, 0.9);
+      padding: 4.5px 10px;
+      border-radius: 3px;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--text-sub);
+      border: 1px solid var(--panel-border);
+      pointer-events: none;
+    }
+
+    @media (max-width: 768px) {
+      .ui-sidebar {
+        width: 240px;
+        max-height: 55vh;
+      }
+      .top-right-bar {
+        width: 205px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="canvas-container"></div>
+  <svg id="callout-svg"></svg>
+  <div id="labels-container"></div>
+
+  <!-- 左側方正緊湊控制面板 -->
+  <aside class="ui-sidebar" id="left-sidebar">
+    <div class="header-box">
+      <div>
+        <span class="badge-pixar">MORANDI PIXAR 3D</span>
+        <h1>共軛、輻輳與 CN III / IV / VI 模擬</h1>
+      </div>
+      <button class="collapse-btn" onclick="togglePanel('left-sidebar', this)" title="收合/展開面板">—</button>
+    </div>
+
+    <div class="panel-body">
+      <!-- 1. 眼球運動情境與拉近拉遠控制 -->
+      <div>
+        <div class="section-title">
+          <span>1. 眼球運動模式 (Eye Movement)</span>
+        </div>
+        <div class="btn-grid">
+          <button id="btn-right" class="active-gaze" onclick="setGazeMode('right')">
+            <span>👉</span> <span>向右看 (Right)</span>
+          </button>
+          <button id="btn-left" onclick="setGazeMode('left')">
+            <span>👈</span> <span>向左看 (Left)</span>
+          </button>
+          <button id="btn-center" onclick="setGazeMode('center')">
+            <span>👁️</span> <span>正視遠方 (Far)</span>
+          </button>
+          <button id="btn-sweep" onclick="setGazeMode('sweep')">
+            <span>↔️</span> <span>左右自動掃視</span>
+          </button>
+          <button id="btn-vergence" class="full-span-btn" onclick="setGazeMode('vergence')">
+            <span>🔍</span> <span>輻輳運動 (Vergence 物體拉近拉遠)</span>
+          </button>
+        </div>
+
+        <!-- 水平方位與物體遠近雙滑桿 -->
+        <div class="slider-box" id="slider-box-gaze">
+          <div class="slider-row">
+            <span class="slider-label">↔ 水平方向</span>
+            <span style="font-size:9.5px; color:var(--text-sub);">左</span>
+            <input type="range" id="gaze-slider" min="-1" max="1" step="0.02" value="1" oninput="onGazeSliderInput(this.value)" />
+            <span style="font-size:9.5px; color:var(--text-sub);">右</span>
+          </div>
+        </div>
+
+        <div class="slider-box vergence-highlight" id="slider-box-vergence">
+          <div class="slider-row">
+            <span class="slider-label" style="color:#784715;">📏 物體遠近</span>
+            <span style="font-size:9.5px; color:#784715;">遠</span>
+            <input type="range" id="vergence-slider" min="0" max="1" step="0.01" value="0.85" oninput="onVergenceSliderInput(this.value)" />
+            <span style="font-size:9.5px; color:#784715;">近</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:9.5px; color:#784715;">
+            <span id="vergence-readout">凝視距離: 遠方平行視線</span>
+            <button style="padding:1.5px 5px; font-size:9.5px; background:#fff;" id="btn-auto-verge" onclick="toggleAutoVergence()">🔄 自動拉近拉遠</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. 臨床腦神經與核間病灶模擬 -->
+      <div>
+        <div class="section-title">
+          <span>2. 腦神經損傷模擬 (CN III / IV / VI & MLF)</span>
+        </div>
+        <div class="btn-list">
+          <button id="lesion-none" class="active-normal" onclick="setLesion('none')">
+            <span>✅</span> <span>正常生理傳導 (Normal)</span>
+          </button>
+          <button id="lesion-cn3_r" onclick="setLesion('cn3_r')">
+            <span>👁️‍🗨️</span> <span>右動眼神經 (CN III) 損傷 (外下斜/垂瞼/散瞳)</span>
+          </button>
+          <button id="lesion-cn4_r" onclick="setLesion('cn4_r')">
+            <span>📐</span> <span>右滑車神經 (CN IV) 損傷 (上斜肌麻痺/上飄)</span>
+          </button>
+          <button id="lesion-cn6_r" onclick="setLesion('cn6_r')">
+            <span>⚡</span> <span>右外旋神經 (CN VI) 損傷 (外直肌內斜)</span>
+          </button>
+          <button id="lesion-mlf_l" onclick="setLesion('mlf_l')">
+            <span>🔗</span> <span>左側 MLF 損傷 (左側 INO・輻輳保留)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3. 內嵌式緊湊單步推進器與步驟清單 -->
+      <div class="seq-box">
+        <div class="seq-header-row">
+          <span class="seq-title-tag" id="seq-status-label">🔄 全路徑即時連動</span>
+
+          <div class="seq-transport">
+            <button class="seq-btn" id="btn-step-play" onclick="startStepReplay()" title="從第 ① 站依序單步推進">▶ 單步重播</button>
+            <button class="seq-btn" id="btn-step-prev" onclick="stepPrev()" title="上一站 (鍵盤 ←)">◀</button>
+            <button class="seq-btn" id="btn-step-next" onclick="stepNext()" title="下一站 (鍵盤 →)">▶</button>
+          </div>
+        </div>
+
+        <div class="seq-grid" id="station-track"></div>
+        <div class="steps-list-container" id="status-steps"></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 右上角方正緊湊視角與標籤設定面板 -->
+  <div class="top-right-bar">
+    <div class="cam-group">
+      <button class="cam-btn" onclick="setCameraView('overview')">🎥 全景俯瞰</button>
+      <button class="cam-btn" onclick="setCameraView('eyes')">👀 雙眼正視特寫</button>
+      <button class="cam-btn" onclick="setCameraView('brainstem')">🧠 腦幹神經核</button>
+      <button class="cam-btn" onclick="setCameraView('reset')" style="color:var(--morandi-ochre); font-weight:800;">🎯 重置 XY 移位</button>
+    </div>
+
+    <div class="label-settings-box" id="right-settings">
+      <div class="section-title" style="margin-bottom: 0;">
+        <span>🏷️ 標籤模式 (<span id="active-label-count" style="color:var(--morandi-ochre);">0</span>)</span>
+        <button class="collapse-btn" style="width:18px; height:18px; font-size:10px;" onclick="togglePanel('right-settings', this)">—</button>
+      </div>
+
+      <div class="right-panel-body">
+        <div class="mode-segmented">
+          <button id="lmode-active_only" class="mode-btn active-mode" onclick="setLabelMode('active_only')">
+            ⚡ 僅作用路徑
+          </button>
+          <button id="lmode-smart_dim" class="mode-btn" onclick="setLabelMode('smart_dim')">
+            ✨ 半透明背景
+          </button>
+          <button id="lmode-all" class="mode-btn" onclick="setLabelMode('all')">
+            🏷️ 全部顯示
+          </button>
+          <button id="lmode-none" class="mode-btn" onclick="setLabelMode('none')">
+            🚫 全部隱藏
+          </button>
+        </div>
+
+        <div class="filter-chips">
+          <button id="cat-leader" class="chip-btn chip-on" onclick="toggleCategory('leader')">📏 引線</button>
+          <button id="cat-stepNum" class="chip-btn chip-on" onclick="toggleCategory('stepNum')">🔢 編號</button>
+          <button id="cat-nuclei" class="chip-btn chip-on" onclick="toggleCategory('nuclei')">🧠 神經核</button>
+          <button id="cat-tract" class="chip-btn chip-on" onclick="toggleCategory('tract')">🔗 神經束</button>
+          <button id="cat-muscle" class="chip-btn chip-on" onclick="toggleCategory('muscle')">💪 眼外肌</button>
+          <button id="cat-blocked" class="chip-btn chip-on" onclick="toggleCategory('blocked')">💤 受阻</button>
+          <button id="cat-side" class="chip-btn chip-on" onclick="toggleCategory('side')">🧭 方位</button>
+        </div>
+
+        <div class="legend-compact">
+          <div class="legend-item"><span class="dot" style="background:#c28242;"></span> ① 額葉 FEF</div>
+          <div class="legend-item"><span class="dot" style="background:#527988;"></span> ②③ PPRF/CN VI</div>
+          <div class="legend-item"><span class="dot" style="background:#846494;"></span> MLF / 滑車 CN IV</div>
+          <div class="legend-item"><span class="dot" style="background:#53846d;"></span> 動眼神經 CN III</div>
+          <div class="legend-item" style="grid-column: span 2;"><span class="dot" style="background:#bf5e5a;"></span> 收縮之眼外肌 (LR / MR / SO 上斜肌)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hint-footer">🖱️ 左鍵：旋轉 ｜ <b>按住滑鼠中鍵(滾輪)：XY 軸平移拖曳</b> ｜ 滾輪：縮放 ｜ ⌨️ ← →：切換單步</div>
+
+  <!-- Three.js 與 OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <script>
+    // ==========================================
+    // 1. 全域狀態管理
+    // ==========================================
+    const state = {
+      gazeMode: 'right',          // 'right' | 'left' | 'center' | 'sweep' | 'vergence' | 'manual'
+      gazeValue: 1.0,             // -1 (左) ~ +1 (右)
+      vergenceProximity: 0.85,    // 0.0 (遠方 Z=-10.8) ~ 1.0 (極近鼻端 Z=-6.35)
+      autoVergence: false,        // 是否自動前後拉近拉遠彩球
+      lesion: 'none',             // 'none' | 'cn3_r' | 'cn4_r' | 'cn6_r' | 'mlf_l'
+
+      playbackMode: 'continuous', // 'continuous' | 'step'
+      currentStep: 6,
+      maxSteps: 6,
+      autoPlaying: false,
+      lastStepTime: 0,
+      stepIntervalSec: 0.95,
+
+      labelMode: 'active_only',
+      labelCategories: {
+        leader: true,
+        stepNum: true,
+        nuclei: true,
+        tract: true,
+        muscle: true,
+        blocked: true,
+        side: true
+      },
+
+      // 雙眼 3D 旋轉目標與當前值 (Yaw 水平, Pitch 垂直, Roll 旋轉/內外旋)
+      leftTarget:  { yaw: 0, pitch: 0, roll: 0, pupilScale: 1.0, lidDroop: 0 },
+      rightTarget: { yaw: 0, pitch: 0, roll: 0, pupilScale: 1.0, lidDroop: 0 },
+      leftCurr:    { yaw: 0, pitch: 0, roll: 0, pupilScale: 1.0, lidDroop: 0 },
+      rightCurr:   { yaw: 0, pitch: 0, roll: 0, pupilScale: 1.0, lidDroop: 0 },
+      nystagmusRight: false
+    };
+
+    const container = document.getElementById('canvas-container');
+    const labelsContainer = document.getElementById('labels-container');
+    const calloutSvg = document.getElementById('callout-svg');
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 250);
+    camera.position.set(0, 22.5, 17.5);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
+    container.appendChild(renderer.domElement);
+
+    // ==========================================
+    // 滑鼠中鍵 (滾輪按住) XY 軸平移拖移優化設定
+    // ==========================================
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.07;
+    controls.target.set(0, 0.1, 1.2);
+    controls.maxPolarAngle = Math.PI * 0.88;
+    controls.minDistance = 5;
+    controls.maxDistance = 48;
+
+    // 關鍵設定：開啟螢幕空間 XY 軸平移，並將滑鼠中鍵 (MIDDLE) 綁定為 PAN
+    controls.screenSpacePanning = true;
+    controls.panSpeed = 1.15;
+    controls.mouseButtons = {
+      LEFT: THREE.MOUSE.ROTATE,
+      MIDDLE: THREE.MOUSE.PAN,
+      RIGHT: THREE.MOUSE.PAN
+    };
+
+    // 攔截瀏覽器預設按下滾輪中鍵時彈出的自動捲動圖示，確保中鍵 100% 用於 3D XY 平移
+    window.addEventListener('mousedown', e => {
+      if (e.button === 1) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    let camAnim = null;
+
+    // ==========================================
+    // 2. 明亮莫蘭蒂攝影棚燈光
+    // ==========================================
+    const ambientLight = new THREE.AmbientLight(0xfffcf7, 0.92);
+    scene.add(ambientLight);
+
+    const keyLight = new THREE.DirectionalLight(0xfffdfa, 1.15);
+    keyLight.position.set(12, 28, 16);
+    keyLight.castShadow = true;
+    scene.add(keyLight);
+
+    const fillLight = new THREE.DirectionalLight(0xe0f2fe, 0.55);
+    fillLight.position.set(-16, 14, -12);
+    scene.add(fillLight);
+
+    const rimLight = new THREE.PointLight(0xfde68a, 0.65, 45);
+    rimLight.position.set(0, 15, -14);
+    scene.add(rimLight);
+
+    const gridHelper = new THREE.GridHelper(34, 34, 0xd6cfc7, 0xeae5df);
+    gridHelper.position.y = -4.5;
+    scene.add(gridHelper);
+
+    const midlineGeo = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(0, -1.5, -11.5),
+      new THREE.Vector3(0, -1.5, 11.5)
+    ]);
+    const midlineMat = new THREE.LineDashedMaterial({
+      color: 0xb8afa3,
+      dashSize: 0.5,
+      gapSize: 0.3,
+      transparent: true,
+      opacity: 0.75
+    });
+    const midline = new THREE.Line(midlineGeo, midlineMat);
+    midline.computeLineDistances();
+    scene.add(midline);
+
+    // ==========================================
+    // 3. 皮克斯虹膜材質（不含死黑瞳孔，改用獨立可縮放 3D 瞳孔以呈現散瞳/縮瞳與旋轉紋理）
+    // ==========================================
+    function createPixarIrisOnlyTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, 512, 512);
+
+      const cx = 256, cy = 256;
+      const outerGrad = ctx.createRadialGradient(cx, cy, 20, cx, cy, 155);
+      outerGrad.addColorStop(0, '#69a2b8');
+      outerGrad.addColorStop(0.55, '#3f6d80');
+      outerGrad.addColorStop(0.85, '#294857');
+      outerGrad.addColorStop(0.96, '#1e293b');
+      outerGrad.addColorStop(1, '#ffffff');
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, 155, 0, Math.PI * 2);
+      ctx.fillStyle = outerGrad;
+      ctx.fill();
+
+      // 放射狀虹膜紋理 + 金色特征斑點 (方便觀察 CN IV 損傷時的外旋 Extorsion)
+      ctx.save();
+      ctx.translate(cx, cy);
+      for (let i = 0; i < 120; i++) {
+        const angle = (i / 120) * Math.PI * 2;
+        ctx.rotate(angle);
+        ctx.strokeStyle = i % 10 === 0 ? 'rgba(251, 191, 36, 0.75)' : 'rgba(216, 236, 242, 0.42)';
+        ctx.lineWidth = i % 10 === 0 ? 3.5 : 2;
+        ctx.beginPath();
+        ctx.moveTo(32, 0);
+        ctx.lineTo(138, 0);
+        ctx.stroke();
+        ctx.rotate(-angle);
+      }
+      ctx.restore();
+
+      const innerGlow = ctx.createRadialGradient(cx, cy, 35, cx, cy, 85);
+      innerGlow.addColorStop(0, 'rgba(217, 155, 82, 0.85)');
+      innerGlow.addColorStop(1, 'rgba(217, 155, 82, 0)');
+      ctx.beginPath();
+      ctx.arc(cx, cy, 85, 0, Math.PI * 2);
+      ctx.fillStyle = innerGlow;
+      ctx.fill();
+
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    function createLuxoBallTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = '#ebbf6b';
+      ctx.fillRect(0, 0, 512, 256);
+
+      ctx.fillStyle = '#4e7994';
+      ctx.fillRect(0, 98, 512, 60);
+
+      function drawStar(cx, cy, spikes, outerR, innerR) {
+        let rot = (Math.PI / 2) * 3;
+        let x = cx, y = cy;
+        const step = Math.PI / spikes;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - outerR);
+        for (let i = 0; i < spikes; i++) {
+          x = cx + Math.cos(rot) * outerR;
+          y = cy + Math.sin(rot) * outerR;
+          ctx.lineTo(x, y);
+          rot += step;
+          x = cx + Math.cos(rot) * innerR;
+          y = cy + Math.sin(rot) * innerR;
+          ctx.lineTo(x, y);
+          rot += step;
+        }
+        ctx.lineTo(cx, cy - outerR);
+        ctx.closePath();
+        ctx.fillStyle = '#c45a56';
+        ctx.fill();
+      }
+      drawStar(128, 52, 5, 36, 15);
+      drawStar(384, 204, 5, 36, 15);
+
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    const irisTexture = createPixarIrisOnlyTexture();
+    const luxoTexture = createLuxoBallTexture();
+
+    // ==========================================
+    // 4. 建立皮克斯雙眼（支援 3D 瞳孔縮放 Miosis/Mydriasis、眼瞼下垂 Ptosis、三軸旋轉）
+    // ==========================================
+    const EYE_RADIUS = 1.22;
+    const LEFT_EYE_POS = new THREE.Vector3(-3.3, 1.45, -5.4);
+    const RIGHT_EYE_POS = new THREE.Vector3(3.3, 1.45, -5.4);
+
+    function createPixarEyeRig(pos) {
+      const rigGroup = new THREE.Group();
+      rigGroup.position.copy(pos);
+      rigGroup.rotation.x = 0.46;
+      scene.add(rigGroup);
+
+      const socketRingGeo = new THREE.TorusGeometry(EYE_RADIUS * 1.06, 0.06, 16, 48);
+      const socketRingMat = new THREE.MeshStandardMaterial({ color: 0xd5b8a3, roughness: 0.5 });
+      rigGroup.add(new THREE.Mesh(socketRingGeo, socketRingMat));
+
+      const eyeballPivot = new THREE.Group();
+      eyeballPivot.rotation.order = 'YXZ'; // 先水平 Yaw、再垂直 Pitch、最後內外旋 Roll
+      rigGroup.add(eyeballPivot);
+
+      const scleraGeo = new THREE.SphereGeometry(EYE_RADIUS, 48, 48);
+      const scleraMat = new THREE.MeshPhysicalMaterial({
+        color: 0xfcfbf9,
+        roughness: 0.15,
+        metalness: 0.02,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.06
+      });
+      eyeballPivot.add(new THREE.Mesh(scleraGeo, scleraMat));
+
+      const irisGeo = new THREE.SphereGeometry(EYE_RADIUS * 1.006, 40, 40, 0, Math.PI * 2, 0, 0.56);
+      const irisMat = new THREE.MeshPhysicalMaterial({
+        map: irisTexture,
+        roughness: 0.08,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.03
+      });
+      const irisMesh = new THREE.Mesh(irisGeo, irisMat);
+      irisMesh.rotation.x = -Math.PI / 2;
+      eyeballPivot.add(irisMesh);
+
+      // 動態可縮放 3D 瞳孔圓盤 (呈現輻輳縮瞳 Miosis 與 CN III 損傷散瞳 Mydriasis)
+      const pupilGeo = new THREE.CircleGeometry(0.26, 32);
+      const pupilMat = new THREE.MeshBasicMaterial({ color: 0x090d16 });
+      const pupilMesh = new THREE.Mesh(pupilGeo, pupilMat);
+      pupilMesh.position.set(0, 0, -EYE_RADIUS * 1.012);
+      pupilMesh.rotation.y = Math.PI;
+      eyeballPivot.add(pupilMesh);
+
+      const catchMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const catch1 = new THREE.Mesh(new THREE.SphereGeometry(0.105, 16, 16), catchMat);
+      catch1.position.set(0.24, 0.26, -EYE_RADIUS * 1.015);
+      eyeballPivot.add(catch1);
+
+      const catch2 = new THREE.Mesh(new THREE.SphereGeometry(0.05, 16, 16), catchMat);
+      catch2.position.set(-0.2, -0.18, -EYE_RADIUS * 1.015);
+      eyeballPivot.add(catch2);
+
+      const rayGeo = new THREE.CylinderGeometry(0.03, 0.07, 4.2, 12);
+      rayGeo.translate(0, 2.1, 0);
+      rayGeo.rotateX(-Math.PI / 2);
+      const rayMat = new THREE.MeshBasicMaterial({
+        color: 0xd99b52,
+        transparent: true,
+        opacity: 0.42
+      });
+      const gazeRay = new THREE.Mesh(rayGeo, rayMat);
+      gazeRay.position.set(0, 0, -EYE_RADIUS);
+      eyeballPivot.add(gazeRay);
+
+      const lidMat = new THREE.MeshStandardMaterial({
+        color: 0xe6bfa6,
+        roughness: 0.42,
+        metalness: 0.04,
+        side: THREE.DoubleSide
+      });
+
+      const upperLid = new THREE.Mesh(
+        new THREE.SphereGeometry(EYE_RADIUS * 1.055, 36, 24, 0, Math.PI * 2, 0, Math.PI * 0.46),
+        lidMat
+      );
+      upperLid.rotation.x = -0.32; // 正常張眼角度；若正值增加則模擬上眼瞼下垂 (Ptosis)
+      rigGroup.add(upperLid);
+
+      const lowerLid = new THREE.Mesh(
+        new THREE.SphereGeometry(EYE_RADIUS * 1.04, 36, 24, 0, Math.PI * 2, Math.PI * 0.68, Math.PI * 0.32),
+        lidMat
+      );
+      lowerLid.rotation.x = 0.25;
+      rigGroup.add(lowerLid);
+
+      const browGeo = new THREE.CylinderGeometry(0.11, 0.11, 1.65, 16);
+      browGeo.rotateZ(Math.PI / 2);
+      const brow = new THREE.Mesh(
+        browGeo,
+        new THREE.MeshStandardMaterial({ color: 0x6b4c3b, roughness: 0.6 })
+      );
+      brow.position.set(0, EYE_RADIUS * 1.26, -0.35);
+      rigGroup.add(brow);
+
+      return { rigGroup, eyeballPivot, pupilMesh, upperLid, brow, gazeRay };
+    }
+
+    const leftEye = createPixarEyeRig(LEFT_EYE_POS);
+    const rightEye = createPixarEyeRig(RIGHT_EYE_POS);
+
+    // 凝視目標：皮克斯彩球 + 遠近軌道標尺線
+    const luxoGroup = new THREE.Group();
+    const luxoBall = new THREE.Mesh(
+      new THREE.SphereGeometry(0.68, 36, 36),
+      new THREE.MeshPhysicalMaterial({ map: luxoTexture, roughness: 0.22, clearcoat: 0.85 })
+    );
+    luxoGroup.add(luxoBall);
+
+    const luxoHalo = new THREE.Mesh(
+      new THREE.SphereGeometry(0.84, 24, 24),
+      new THREE.MeshBasicMaterial({ color: 0xd99b52, transparent: true, opacity: 0.25, wireframe: true })
+    );
+    luxoGroup.add(luxoHalo);
+    luxoGroup.position.set(4.2, 3.1, -9.2);
+    scene.add(luxoGroup);
+
+    // ==========================================
+    // 5. 眼外肌模型 (含外直肌 LR、內直肌 MR 與上斜肌 SO + 滑車 Trochlea)
+    // ==========================================
+    function createExtraocularMuscle(startPos, endPos, radius = 0.145) {
+      const dir = new THREE.Vector3().subVectors(endPos, startPos);
+      const len = dir.length();
+      const mid = new THREE.Vector3().addVectors(startPos, endPos).multiplyScalar(0.5);
+
+      const geo = new THREE.CylinderGeometry(radius, radius, len, 20, 16);
+      const posAttr = geo.attributes.position;
+      for (let i = 0; i < posAttr.count; i++) {
+        const y = posAttr.getY(i);
+        const normY = y / (len / 2);
+        const bulge = 1 + 0.82 * Math.cos(normY * Math.PI * 0.5);
+        posAttr.setX(i, posAttr.getX(i) * bulge);
+        posAttr.setZ(i, posAttr.getZ(i) * bulge);
+      }
+      geo.computeVertexNormals();
+
+      const mat = new THREE.MeshPhysicalMaterial({
+        color: 0xb88b88,
+        emissive: 0x000000,
+        roughness: 0.38,
+        clearcoat: 0.35
+      });
+
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.copy(mid);
+      mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
+      scene.add(mesh);
+
+      return { mesh, mat, midPos: mid };
+    }
+
+    // 建立右側滑車 (Trochlea) 與上斜肌腱反射結構 (展示 CN IV 支配)
+    const trochleaPosR = new THREE.Vector3(2.15, 2.25, -5.85);
+    const trochleaRing = new THREE.Mesh(
+      new THREE.TorusGeometry(0.18, 0.05, 12, 24),
+      new THREE.MeshStandardMaterial({ color: 0xd4a373, roughness: 0.3 })
+    );
+    trochleaRing.position.copy(trochleaPosR);
+    scene.add(trochleaRing);
+
+    const muscles = {
+      leftLR:  createExtraocularMuscle(new THREE.Vector3(-4.5, 1.35, -5.25), new THREE.Vector3(-3.35, 0.45, -2.1)),
+      leftMR:  createExtraocularMuscle(new THREE.Vector3(-2.1, 1.35, -5.25), new THREE.Vector3(-2.6, 0.45, -2.1)),
+      rightMR: createExtraocularMuscle(new THREE.Vector3(2.1, 1.35, -5.25), new THREE.Vector3(2.6, 0.45, -2.1)),
+      rightLR: createExtraocularMuscle(new THREE.Vector3(4.5, 1.35, -5.25), new THREE.Vector3(3.35, 0.45, -2.1)),
+      // 右上斜肌 (Right Superior Oblique, SO)：由眼眶尖端經內上方滑車 Trochlea 折返附著於眼球上方
+      rightSO: createExtraocularMuscle(trochleaPosR, new THREE.Vector3(2.55, 0.95, -2.1), 0.115),
+      rightSOTendon: createExtraocularMuscle(trochleaPosR, new THREE.Vector3(3.25, 2.35, -5.15), 0.095)
+    };
+
+    // ==========================================
+    // 6. 展開式腦幹與皮質輪廓
+    // ==========================================
+    const shellMat = new THREE.MeshPhysicalMaterial({
+      color: 0x8caab8,
+      transparent: true,
+      opacity: 0.13,
+      roughness: 0.25,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+
+    const midbrainShell = new THREE.Mesh(new THREE.CylinderGeometry(2.9, 3.1, 3.2, 32), shellMat);
+    midbrainShell.rotation.x = Math.PI / 2;
+    midbrainShell.position.set(0, -0.15, 0.1);
+    scene.add(midbrainShell);
+
+    const ponsShell = new THREE.Mesh(new THREE.SphereGeometry(3.8, 32, 24), shellMat);
+    ponsShell.scale.set(1.18, 0.55, 1.15);
+    ponsShell.position.set(0, -0.45, 4.4);
+    scene.add(ponsShell);
+
+    const cortexMat = new THREE.MeshPhysicalMaterial({
+      color: 0xd4a373,
+      transparent: true,
+      opacity: 0.13,
+      roughness: 0.3,
+      depthWrite: false
+    });
+    const leftCortex = new THREE.Mesh(new THREE.SphereGeometry(2.7, 28, 20), cortexMat);
+    leftCortex.scale.set(1.15, 0.62, 0.88);
+    leftCortex.position.set(-4.6, -0.7, 8.9);
+    scene.add(leftCortex);
+
+    const rightCortex = new THREE.Mesh(new THREE.SphereGeometry(2.7, 28, 20), cortexMat);
+    rightCortex.scale.set(1.15, 0.62, 0.88);
+    rightCortex.position.set(4.6, -0.7, 8.9);
+    scene.add(rightCortex);
+
+    // ==========================================
+    // 7. 展開後的神經核團節點 (含 CN III、CN IV 滑車神經核、CN VI、PPRF、FEF)
+    // ==========================================
+    const nodePositions = {
+      cn3_l:  new THREE.Vector3(-1.65,  0.05, -0.6),
+      cn3_r:  new THREE.Vector3( 1.65,  0.05, -0.6),
+      cn4_l:  new THREE.Vector3(-1.35, -0.05,  1.15), // 左滑車神經核 (交叉支配右上斜肌)
+      cn4_r:  new THREE.Vector3( 1.35, -0.05,  1.15),
+      cn6_l:  new THREE.Vector3(-1.95, -0.25,  3.4),
+      cn6_r:  new THREE.Vector3( 1.95, -0.25,  3.4),
+      pprf_l: new THREE.Vector3(-2.15, -0.45,  5.6),
+      pprf_r: new THREE.Vector3( 2.15, -0.45,  5.6),
+      fef_l:  new THREE.Vector3(-4.60, -0.55,  8.8),
+      fef_r:  new THREE.Vector3( 4.60, -0.55,  8.8)
+    };
+
+    const nucleiNodes = {};
+
+    function createNucleusOrb(key, pos, radius, baseColorHex) {
+      const geo = new THREE.SphereGeometry(radius, 32, 32);
+      const mat = new THREE.MeshPhysicalMaterial({
+        color: baseColorHex,
+        emissive: baseColorHex,
+        emissiveIntensity: 0.15,
+        roughness: 0.18,
+        clearcoat: 1.0
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.copy(pos);
+      scene.add(mesh);
+
+      const ringGeo = new THREE.RingGeometry(radius * 1.28, radius * 1.56, 32);
+      ringGeo.rotateX(-Math.PI / 2);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: baseColorHex,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.45
+      });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      mesh.add(ring);
+
+      nucleiNodes[key] = {
+        mesh,
+        mat,
+        ring,
+        ringMat,
+        baseColor: new THREE.Color(baseColorHex),
+        active: false,
+        frontier: false,
+        lesion: false
+      };
+    }
+
+    createNucleusOrb('fef_l',  nodePositions.fef_l,  0.62, 0xc88a4b);
+    createNucleusOrb('fef_r',  nodePositions.fef_r,  0.62, 0xc88a4b);
+    createNucleusOrb('pprf_l', nodePositions.pprf_l, 0.48, 0x5b8291);
+    createNucleusOrb('pprf_r', nodePositions.pprf_r, 0.48, 0x5b8291);
+    createNucleusOrb('cn6_l',  nodePositions.cn6_l,  0.50, 0x488b8f);
+    createNucleusOrb('cn6_r',  nodePositions.cn6_r,  0.50, 0x488b8f);
+    createNucleusOrb('cn4_l',  nodePositions.cn4_l,  0.38, 0x846494);
+    createNucleusOrb('cn4_r',  nodePositions.cn4_r,  0.38, 0x846494);
+    createNucleusOrb('cn3_l',  nodePositions.cn3_l,  0.48, 0x5c8d76);
+    createNucleusOrb('cn3_r',  nodePositions.cn3_r,  0.48, 0x5c8d76);
+
+    // ==========================================
+    // 8. 神經傳導束與粒子流
+    // ==========================================
+    const pathways = {};
+
+    function createPathway(id, points, colorHex, radius = 0.085) {
+      const curve = new THREE.CatmullRomCurve3(points);
+      const geo = new THREE.TubeGeometry(curve, 56, radius, 14, false);
+      const mat = new THREE.MeshPhysicalMaterial({
+        color: colorHex,
+        emissive: colorHex,
+        emissiveIntensity: 0.1,
+        transparent: true,
+        opacity: 0.3,
+        roughness: 0.25
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      scene.add(mesh);
+
+      const particles = [];
+      const pGeo = new THREE.SphereGeometry(radius * 2.35, 16, 16);
+      const pMat = new THREE.MeshBasicMaterial({ color: colorHex });
+      for (let i = 0; i < 4; i++) {
+        const pMesh = new THREE.Mesh(pGeo, pMat.clone());
+        pMesh.visible = false;
+        scene.add(pMesh);
+        particles.push({ mesh: pMesh, offset: i / 4 });
+      }
+
+      pathways[id] = {
+        curve,
+        mesh,
+        mat,
+        baseColor: new THREE.Color(colorHex),
+        particles,
+        active: false,
+        blocked: false
+      };
+    }
+
+    createPathway('fef_l_to_pprf_r', [
+      nodePositions.fef_l,
+      new THREE.Vector3(-2.2, -0.52, 7.5),
+      new THREE.Vector3(0, -0.48, 6.6),
+      nodePositions.pprf_r
+    ], 0xc88a4b);
+
+    createPathway('fef_r_to_pprf_l', [
+      nodePositions.fef_r,
+      new THREE.Vector3(2.2, -0.52, 7.5),
+      new THREE.Vector3(0, -0.48, 6.6),
+      nodePositions.pprf_l
+    ], 0xc88a4b);
+
+    createPathway('pprf_r_to_cn6_r', [nodePositions.pprf_r, nodePositions.cn6_r], 0x5b8291, 0.1);
+    createPathway('pprf_l_to_cn6_l', [nodePositions.pprf_l, nodePositions.cn6_l], 0x5b8291, 0.1);
+
+    createPathway('cn6_r_to_lr_r', [
+      nodePositions.cn6_r,
+      new THREE.Vector3(3.2, 0.1, 0.8),
+      new THREE.Vector3(4.1, 0.65, -2.4),
+      new THREE.Vector3(4.15, 1.0, -3.9)
+    ], 0x488b8f);
+
+    createPathway('cn6_l_to_lr_l', [
+      nodePositions.cn6_l,
+      new THREE.Vector3(-3.2, 0.1, 0.8),
+      new THREE.Vector3(-4.1, 0.65, -2.4),
+      new THREE.Vector3(-4.15, 1.0, -3.9)
+    ], 0x488b8f);
+
+    createPathway('mlf_l', [
+      nodePositions.cn6_r,
+      new THREE.Vector3(0.3, -0.18, 2.7),
+      new THREE.Vector3(-0.85, -0.08, 1.4),
+      nodePositions.cn3_l
+    ], 0x8c6d9c, 0.095);
+
+    createPathway('mlf_r', [
+      nodePositions.cn6_l,
+      new THREE.Vector3(-0.3, -0.18, 2.7),
+      new THREE.Vector3(0.85, -0.08, 1.4),
+      nodePositions.cn3_r
+    ], 0x8c6d9c, 0.095);
+
+    createPathway('cn3_l_to_mr_l', [
+      nodePositions.cn3_l,
+      new THREE.Vector3(-2.1, 0.4, -2.0),
+      new THREE.Vector3(-2.3, 0.95, -3.8)
+    ], 0x5c8d76);
+
+    createPathway('cn3_r_to_mr_r', [
+      nodePositions.cn3_r,
+      new THREE.Vector3(2.1, 0.4, -2.0),
+      new THREE.Vector3(2.3, 0.95, -3.8)
+    ], 0x5c8d76);
+
+    // 滑車神經 (Right CN IV Nerve)：由左滑車神經核背側交叉穿出，支配右上斜肌 (Right SO)
+    createPathway('cn4_to_so_r', [
+      nodePositions.cn4_l,
+      new THREE.Vector3(0, 0.35, 1.25),
+      new THREE.Vector3(2.6, 0.75, -0.6),
+      new THREE.Vector3(2.55, 1.25, -2.8)
+    ], 0x846494, 0.075);
+
+    // ==========================================
+    // 9. 病灶阻斷標記
+    // ==========================================
+    function createLesionMarker(pos) {
+      const group = new THREE.Group();
+      group.position.copy(pos);
+
+      const barGeo = new THREE.BoxGeometry(1.05, 0.2, 0.2);
+      const barMat = new THREE.MeshBasicMaterial({ color: 0xc4514d });
+      const bar1 = new THREE.Mesh(barGeo, barMat);
+      bar1.rotation.z = Math.PI / 4;
+      const bar2 = new THREE.Mesh(barGeo, barMat);
+      bar2.rotation.z = -Math.PI / 4;
+      group.add(bar1, bar2);
+
+      const sphereGeo = new THREE.SphereGeometry(0.62, 20, 20);
+      const sphereMat = new THREE.MeshBasicMaterial({
+        color: 0xc46864,
+        transparent: true,
+        opacity: 0.3,
+        wireframe: true
+      });
+      group.add(new THREE.Mesh(sphereGeo, sphereMat));
+
+      group.visible = false;
+      scene.add(group);
+      return group;
+    }
+
+    const lesionMarkers = {
+      cn3_r: createLesionMarker(new THREE.Vector3(2.1, 0.4, -1.9)),
+      cn4_r: createLesionMarker(new THREE.Vector3(2.6, 0.8, -0.8)),
+      cn6_r: createLesionMarker(new THREE.Vector3(3.35, 0.2, 0.3)),
+      mlf_l: createLesionMarker(new THREE.Vector3(-0.85, -0.05, 1.4))
+    };
+
+    // ==========================================
+    // 10. 方正外置引線避障標籤系統
+    // ==========================================
+    const labelDefs = [
+      {
+        id: 'lbl_side_l', text: '左側 LEFT', category: 'side', extraClass: 'side-badge',
+        targetPos: new THREE.Vector3(-5.6, 2.4, -5.4),
+        labelPos:  new THREE.Vector3(-5.6, 2.4, -5.4),
+        hasLeader: false
+      },
+      {
+        id: 'lbl_side_r', text: '右側 RIGHT', category: 'side', extraClass: 'side-badge',
+        targetPos: new THREE.Vector3(5.6, 2.4, -5.4),
+        labelPos:  new THREE.Vector3(5.6, 2.4, -5.4),
+        hasLeader: false
+      },
+      {
+        id: 'lbl_lr_l', text: '左外直肌 (Left LR)', category: 'muscle',
+        targetPos: new THREE.Vector3(-4.0, 0.95, -3.8),
+        labelPos:  new THREE.Vector3(-6.2, 1.45, -4.0),
+        hasLeader: true
+      },
+      {
+        id: 'lbl_mr_l', text: '左內直肌 (Left MR)', category: 'muscle',
+        targetPos: new THREE.Vector3(-2.3, 0.95, -3.8),
+        labelPos:  new THREE.Vector3(-1.35, 2.35, -3.4),
+        hasLeader: true
+      },
+      {
+        id: 'lbl_mr_r', text: '右內直肌 (Right MR)', category: 'muscle',
+        targetPos: new THREE.Vector3(2.3, 0.95, -3.8),
+        labelPos:  new THREE.Vector3(1.35, 2.35, -3.4),
+        hasLeader: true
+      },
+      {
+        id: 'lbl_lr_r', text: '右外直肌 (Right LR)', category: 'muscle',
+        targetPos: new THREE.Vector3(4.0, 0.95, -3.8),
+        labelPos:  new THREE.Vector3(6.2, 1.45, -4.0),
+        hasLeader: true
+      },
+      {
+        id: 'lbl_so_r', text: '右上斜肌與滑車 (Right SO)', category: 'muscle',
+        targetPos: trochleaPosR,
+        labelPos:  new THREE.Vector3(5.3, 2.75, -5.4),
+        hasLeader: true
+      },
+      {
+        id: 'lbl_cn3_nerve_r', text: '右動眼神經 (Right CN III)', category: 'tract',
+        targetPos: new THREE.Vector3(2.1, 0.4, -1.9),
+        labelPos:  new THREE.Vector3(5.5, 1.1, -1.9),
+        hasLeader: true
+      },
+      {
+        id: 'lbl_cn4_nerve_r', text: '右滑車神經 (Right CN IV)', category: 'tract',
+        targetPos: new THREE.Vector3(2.6, 0.8, -0.8),
+        labelPos:  new THREE.Vector3(5.8, 1.35, -0.8),
+        hasLeader: true
+      },
+      {
+        id: 'lbl_cn6_nerve_l', text: '左外旋神經 (CN VI)', category: 'tract',
+        targetPos: new THREE.Vector3(-3.3, 0.2, 0.5),
+        labelPos:  new THREE.Vector3(-6.0, 0.65, 0.5),
+        hasLeader: true
+      },
+      {
+        id: 'lbl_cn6_nerve_r', text: '右外旋神經 (CN VI)', category: 'tract',
+        targetPos: new THREE.Vector3(3.3, 0.2, 0.5),
+        labelPos:  new THREE.Vector3(6.0, 0.65, 0.5),
+        hasLeader: true
+      },
+      {
+        id: 'lbl_mlf_l', text: '左側內側縱束 (Left MLF)', category: 'tract',
+        targetPos: new THREE.Vector3(-0.85, -0.08, 1.4),
+        labelPos:  new THREE.Vector3(-4.4, 0.75, 1.65),
+        hasLeader: true
+      },
+      {
+        id: 'lbl_mlf_r', text: '右側內側縱束 (Right MLF)', category: 'tract',
+        targetPos: new THREE.Vector3(0.85, -0.08, 1.4),
+        labelPos:  new THREE.Vector3(4.4, 0.75, 1.65),
+        hasLeader: true
+      },
+      {
+        id: 'lbl_cn3_l', text: '左動眼神經核 (CN III)', category: 'nuclei',
+        targetPos: nodePositions.cn3_l,
+        labelPos:  new THREE.Vector3(-4.8, 0.75, -0.6),
+        hasLeader: true
+      },
+      {
+        id: 'lbl_cn3_r', text: '右動眼神經核 (CN III)', category: 'nuclei',
+        targetPos: nodePositions.cn3_r,
+        labelPos:  new THREE.Vector3(4.8, 0.75, -0.6),
+        hasLeader: true
+      },
+      {
+        id: 'lbl_cn4_l', text: '左滑車神經核 (交叉至右SO)', category: 'nuclei',
+        targetPos: nodePositions.cn4_l,
+        labelPos:  new THREE.Vector3(-4.9, 0.55, 1.15),
+        hasLeader: true
+      },
+      {
+        id: 'lbl_cn6_l', text: '左外旋神經核 (CN VI)', category: 'nuclei',
+        targetPos: nodePositions.cn6_l,
+        labelPos:  new THREE.Vector3(-5.2, 0.35, 3.4),
+        hasLeader: true
+      },
+      {
+        id: 'lbl_cn6_r', text: '右外旋神經核 (CN VI)', category: 'nuclei',
+        targetPos: nodePositions.cn6_r,
+        labelPos:  new THREE.Vector3(5.2, 0.35, 3.4),
+        hasLeader: true
+      },
+      {
+        id: 'lbl_pprf_l', text: '左橋腦 PPRF', category: 'nuclei',
+        targetPos: nodePositions.pprf_l,
+        labelPos:  new THREE.Vector3(-5.4, 0.2, 5.8),
+        hasLeader: true
+      },
+      {
+        id: 'lbl_pprf_r', text: '右橋腦 PPRF', category: 'nuclei',
+        targetPos: nodePositions.pprf_r,
+        labelPos:  new THREE.Vector3(5.4, 0.2, 5.8),
+        hasLeader: true
+      },
+      {
+        id: 'lbl_fef_l', text: '左額葉眼動區 (FEF)', category: 'nuclei',
+        targetPos: nodePositions.fef_l,
+        labelPos:  new THREE.Vector3(-6.9, 0.25, 9.0),
+        hasLeader: true
+      },
+      {
+        id: 'lbl_fef_r', text: '右額葉眼動區 (FEF)', category: 'nuclei',
+        targetPos: nodePositions.fef_r,
+        labelPos:  new THREE.Vector3(6.9, 0.25, 9.0),
+        hasLeader: true
+      }
+    ];
+
+    const labelElements = {};
+    const svgNS = 'http://www.w3.org/2000/svg';
+
+    labelDefs.forEach(def => {
+      const el = document.createElement('div');
+      el.className = 'node-label' + (def.extraClass ? ' ' + def.extraClass : '');
+
+      const badgeSpan = document.createElement('span');
+      badgeSpan.className = 'step-badge';
+      badgeSpan.style.display = 'none';
+
+      const textSpan = document.createElement('span');
+      textSpan.textContent = def.text;
+
+      el.appendChild(badgeSpan);
+      el.appendChild(textSpan);
+      labelsContainer.appendChild(el);
+
+      let svgLine = null;
+      let svgDot = null;
+      if (def.hasLeader) {
+        svgLine = document.createElementNS(svgNS, 'polyline');
+        svgLine.setAttribute('class', 'leader-line');
+        calloutSvg.appendChild(svgLine);
+
+        svgDot = document.createElementNS(svgNS, 'circle');
+        svgDot.setAttribute('class', 'leader-dot');
+        svgDot.setAttribute('r', '3');
+        calloutSvg.appendChild(svgDot);
+      }
+
+      labelElements[def.id] = {
+        el,
+        badgeSpan,
+        textSpan,
+        svgLine,
+        svgDot,
+        hasLeader: def.hasLeader,
+        targetPos: def.targetPos,
+        labelPos: def.labelPos,
+        category: def.category,
+        isVisibleNow: true,
+        isDimmedNow: false,
+        isActive: false,
+        isFrontier: false,
+        isLesion: false,
+        isDownstreamBlocked: false,
+        stepBadge: ''
+      };
+    });
+
+    function markLabelState(id, statusType, badgeStr = '', isCurrentFrontier = false) {
+      const item = labelElements[id];
+      if (!item) return;
+      if (statusType === 'active') item.isActive = true;
+      else if (statusType === 'lesion') item.isLesion = true;
+      else if (statusType === 'blocked') item.isDownstreamBlocked = true;
+      if (isCurrentFrontier) item.isFrontier = true;
+      if (badgeStr) item.stepBadge = badgeStr;
+    }
+
+    function refreshLabelStyles() {
+      let visibleCount = 0;
+
+      labelDefs.forEach(def => {
+        const item = labelElements[def.id];
+        item.el.classList.remove(
+          'active',
+          'current-frontier',
+          'lesion',
+          'downstream-blocked',
+          'dimmed-label',
+          'hidden-label'
+        );
+        item.isVisibleNow = false;
+        item.isDimmedNow = false;
+
+        const catEnabled = state.labelCategories[item.category];
+        if (!catEnabled || state.labelMode === 'none') {
+          item.el.classList.add('hidden-label');
+          updateSvgElementVisibility(item);
+          return;
+        }
+
+        if (item.category === 'side') {
+          item.isVisibleNow = true;
+          visibleCount++;
+          item.badgeSpan.style.display = 'none';
+          updateSvgElementVisibility(item);
+          return;
+        }
+
+        const isInvolved =
+          item.isActive ||
+          item.isLesion ||
+          (item.isDownstreamBlocked && state.labelCategories.blocked);
+
+        if (state.labelMode === 'active_only') {
+          if (!isInvolved) {
+            item.el.classList.add('hidden-label');
+            updateSvgElementVisibility(item);
+            return;
+          }
+        } else if (state.labelMode === 'smart_dim') {
+          if (!isInvolved) {
+            item.el.classList.add('dimmed-label');
+            item.isDimmedNow = true;
+          }
+        }
+
+        item.isVisibleNow = true;
+        visibleCount++;
+
+        if (item.isLesion) {
+          item.el.classList.add('lesion');
+        } else if (item.isFrontier && state.playbackMode === 'step') {
+          item.el.classList.add('current-frontier');
+        } else if (item.isActive) {
+          item.el.classList.add('active');
+        } else if (item.isDownstreamBlocked && state.labelCategories.blocked) {
+          item.el.classList.add('downstream-blocked');
+        }
+
+        if (state.labelCategories.stepNum && item.stepBadge && isInvolved) {
+          item.badgeSpan.textContent = item.stepBadge;
+          item.badgeSpan.style.display = 'inline-flex';
+        } else {
+          item.badgeSpan.style.display = 'none';
+        }
+
+        updateSvgElementVisibility(item);
+      });
+
+      const countEl = document.getElementById('active-label-count');
+      if (countEl) countEl.textContent = visibleCount;
+    }
+
+    function updateSvgElementVisibility(item) {
+      if (!item.hasLeader) return;
+      const showLeader = item.isVisibleNow && state.labelCategories.leader;
+      item.svgLine.style.opacity = showLeader ? (item.isDimmedNow ? '0.18' : '0.85') : '0';
+      item.svgDot.style.opacity = showLeader ? (item.isDimmedNow ? '0.18' : '1') : '0';
+
+      let lineClass = 'leader-line';
+      let dotClass = 'leader-dot';
+      if (item.isLesion) {
+        lineClass += ' lesion-line';
+        dotClass += ' lesion-dot';
+      } else if (item.isFrontier && state.playbackMode === 'step') {
+        lineClass += ' frontier-line';
+        dotClass += ' frontier-dot';
+      } else if (item.isActive) {
+        lineClass += ' active-line';
+        dotClass += ' active-dot';
+      }
+
+      item.svgLine.setAttribute('class', lineClass);
+      item.svgDot.setAttribute('class', dotClass);
+    }
+
+    function updateLabelsProjection() {
+      const halfW = window.innerWidth / 2;
+      const halfH = window.innerHeight / 2;
+
+      labelDefs.forEach(def => {
+        const item = labelElements[def.id];
+        const activeAnchor3D = state.labelCategories.leader
+          ? item.labelPos
+          : item.targetPos.clone().add(new THREE.Vector3(0, 0.85, 0));
+
+        const vLabel = activeAnchor3D.clone().project(camera);
+        const vTarget = item.targetPos.clone().project(camera);
+
+        if (vLabel.z > 1 || vTarget.z > 1) {
+          item.el.style.visibility = 'hidden';
+          if (item.hasLeader) {
+            item.svgLine.style.visibility = 'hidden';
+            item.svgDot.style.visibility = 'hidden';
+          }
+          return;
+        }
+
+        item.el.style.visibility = 'visible';
+        const lx = (vLabel.x * halfW) + halfW;
+        const ly = -(vLabel.y * halfH) + halfH;
+        item.el.style.left = `${lx}px`;
+        item.el.style.top = `${ly}px`;
+
+        if (item.hasLeader) {
+          item.svgLine.style.visibility = 'visible';
+          item.svgDot.style.visibility = 'visible';
+
+          const tx = (vTarget.x * halfW) + halfW;
+          const ty = -(vTarget.y * halfH) + halfH;
+          const elbowX = tx + (lx - tx) * 0.65;
+          const elbowY = ly;
+
+          item.svgLine.setAttribute('points', `${tx},${ty} ${elbowX},${elbowY} ${lx},${ly}`);
+          item.svgDot.setAttribute('cx', tx);
+          item.svgDot.setAttribute('cy', ty);
+        }
+      });
+    }
+
+    // ==========================================
+    // 11. 神經生理計算引擎 (共軛凝視 + 輻輳運動 + CN III / IV / VI & MLF 病灶)
+    // ==========================================
+    function evaluateNeuroPathway() {
+      Object.values(pathways).forEach(p => {
+        p.active = false;
+        p.blocked = false;
+      });
+      Object.values(nucleiNodes).forEach(n => {
+        n.active = false;
+        n.frontier = false;
+        n.lesion = false;
+      });
+      Object.values(lesionMarkers).forEach(m => (m.visible = false));
+      Object.values(labelElements).forEach(l => {
+        l.isActive = false;
+        l.isFrontier = false;
+        l.isLesion = false;
+        l.isDownstreamBlocked = false;
+        l.stepBadge = '';
+      });
+
+      state.nystagmusRight = false;
+
+      if (state.gazeMode === 'vergence') {
+        state.maxSteps = 3;
+      } else if (Math.abs(state.gazeValue) <= 0.08 && state.gazeMode !== 'sweep') {
+        state.maxSteps = 1;
+      } else {
+        state.maxSteps = 6;
+      }
+
+      if (state.currentStep > state.maxSteps) {
+        state.currentStep = state.maxSteps;
+      }
+
+      const S = state.playbackMode === 'continuous' ? state.maxSteps : state.currentStep;
+
+      const maxAngle = 0.52;
+      let leftYaw = 0, leftPitch = 0, leftRoll = 0, leftPupil = 1.0, leftDroop = 0;
+      let rightYaw = 0, rightPitch = 0, rightRoll = 0, rightPupil = 1.0, rightDroop = 0;
+      let activeMuscle = { leftLR: 0, leftMR: 0, rightMR: 0, rightLR: 0, rightSO: 0, rightSOTendon: 0 };
+
+      // ---------------------------------------------
+      // 模式 A：🔍 輻輳運動 (Vergence：物體拉近拉遠)
+      // ---------------------------------------------
+      if (state.gazeMode === 'vergence') {
+        const prox = state.vergenceProximity; // 0 (遠) ~ 1 (近)
+        const readoutEl = document.getElementById('vergence-readout');
+        const distCm = Math.round(15 + (1 - prox) * 185);
+        if (readoutEl) {
+          readoutEl.textContent = prox > 0.15
+            ? `目標距離: 約 ${distCm} cm (雙眼內聚 + 縮瞳)`
+            : `目標距離: ${distCm} cm (遠方平行視線)`;
+        }
+
+        if (S >= 1) {
+          nucleiNodes.cn3_l.active = true;
+          nucleiNodes.cn3_r.active = true;
+          nucleiNodes.cn3_l.frontier = (S === 1);
+          nucleiNodes.cn3_r.frontier = (S === 1);
+          markLabelState('lbl_cn3_l', 'active', '① 近反射核', S === 1);
+          markLabelState('lbl_cn3_r', 'active', '① 近反射核', S === 1);
+        }
+
+        if (S >= 2) {
+          pathways.cn3_l_to_mr_l.active = true;
+          if (state.lesion === 'cn3_r') {
+            lesionMarkers.cn3_r.visible = true;
+            pathways.cn3_r_to_mr_r.blocked = true;
+            markLabelState('lbl_cn3_nerve_r', 'lesion', '⛔ ② CN III 阻斷', S === 2);
+          } else {
+            pathways.cn3_r_to_mr_r.active = true;
+            markLabelState('lbl_cn3_nerve_r', 'active', '② 動眼神經', S === 2);
+          }
+        }
+
+        if (S >= 3) {
+          // 左眼正常輻輳內聚 + 縮瞳 (Miosis)
+          activeMuscle.leftMR = prox;
+          leftYaw = -maxAngle * 0.82 * prox;
+          leftPupil = 1.0 - 0.42 * prox;
+          markLabelState('lbl_mr_l', 'active', '③ 輻輳內聚', S === 3);
+
+          // 右眼依病灶決定是否能輻輳
+          if (state.lesion === 'cn3_r') {
+            // 右側 CN III 損傷：右眼無法內聚，維持外下斜視 + 散瞳 + 垂瞼
+            markLabelState('lbl_mr_r', 'blocked', '💤 ③ 無法內聚', S === 3);
+          } else {
+            activeMuscle.rightMR = prox;
+            rightYaw = maxAngle * 0.82 * prox;
+            rightPupil = 1.0 - 0.42 * prox;
+            markLabelState('lbl_mr_r', 'active', '③ 輻輳內聚', S === 3);
+          }
+        }
+      }
+      // ---------------------------------------------
+      // 模式 B：👉 向右看 (Right Gaze, +X)
+      // ---------------------------------------------
+      else if (state.gazeValue > 0.08) {
+        const amt = Math.min(1, state.gazeValue);
+
+        if (S >= 1) {
+          nucleiNodes.fef_l.active = true;
+          nucleiNodes.fef_l.frontier = (S === 1);
+          markLabelState('lbl_fef_l', 'active', '① 啟動', S === 1);
+        }
+
+        if (S >= 2) {
+          pathways.fef_l_to_pprf_r.active = true;
+          nucleiNodes.pprf_r.active = true;
+          nucleiNodes.pprf_r.frontier = (S === 2);
+          markLabelState('lbl_pprf_r', 'active', '② 整合', S === 2);
+        }
+
+        if (S >= 3) {
+          pathways.pprf_r_to_cn6_r.active = true;
+          nucleiNodes.cn6_r.active = true;
+          nucleiNodes.cn6_r.frontier = (S === 3);
+          markLabelState('lbl_cn6_r', 'active', '③ 分流', S === 3);
+        }
+
+        if (S >= 4) {
+          if (state.lesion === 'cn6_r') {
+            lesionMarkers.cn6_r.visible = true;
+            pathways.cn6_r_to_lr_r.blocked = true;
+            markLabelState('lbl_cn6_nerve_r', 'lesion', '⛔ ④a CN VI 阻斷', S === 4);
+          } else {
+            pathways.cn6_r_to_lr_r.active = true;
+            markLabelState('lbl_cn6_nerve_r', 'active', '④a 運動支', S === 4);
+          }
+
+          if (state.lesion === 'mlf_l') {
+            lesionMarkers.mlf_l.visible = true;
+            pathways.mlf_l.blocked = true;
+            markLabelState('lbl_mlf_l', 'lesion', '⛔ ④b MLF 阻斷', S === 4);
+          } else {
+            pathways.mlf_l.active = true;
+            markLabelState('lbl_mlf_l', 'active', '④b 跨中線', S === 4);
+          }
+        }
+
+        if (S >= 5) {
+          if (state.lesion === 'cn6_r') {
+            rightYaw = 0.22; // 內斜視無法外展
+            markLabelState('lbl_lr_r', 'blocked', '💤 ⑤a 無法外展', S === 5);
+          } else {
+            activeMuscle.rightLR = amt;
+            rightYaw = -maxAngle * amt;
+            markLabelState('lbl_lr_r', 'active', '⑤a 外展', S === 5);
+          }
+
+          if (state.lesion === 'mlf_l') {
+            state.nystagmusRight = true;
+            markLabelState('lbl_cn3_l', 'blocked', '💤 ⑤b 無訊號', S === 5);
+          } else {
+            nucleiNodes.cn3_l.active = true;
+            nucleiNodes.cn3_l.frontier = (S === 5);
+            markLabelState('lbl_cn3_l', 'active', '⑤b 轉接', S === 5);
+          }
+        }
+
+        if (S >= 6) {
+          if (state.lesion === 'mlf_l') {
+            leftYaw = 0;
+            markLabelState('lbl_mr_l', 'blocked', '💤 ⑥b 無法內收(INO)', S === 6);
+          } else {
+            pathways.cn3_l_to_mr_l.active = true;
+            activeMuscle.leftMR = amt;
+            leftYaw = -maxAngle * amt;
+            markLabelState('lbl_mr_l', 'active', '⑥b 內收完成', S === 6);
+          }
+        }
+      }
+      // ---------------------------------------------
+      // 模式 C：👈 向左看 (Left Gaze, -X)
+      // ---------------------------------------------
+      else if (state.gazeValue < -0.08) {
+        const amt = Math.min(1, Math.abs(state.gazeValue));
+
+        if (S >= 1) {
+          nucleiNodes.fef_r.active = true;
+          nucleiNodes.fef_r.frontier = (S === 1);
+          markLabelState('lbl_fef_r', 'active', '① 啟動', S === 1);
+        }
+
+        if (S >= 2) {
+          pathways.fef_r_to_pprf_l.active = true;
+          nucleiNodes.pprf_l.active = true;
+          nucleiNodes.pprf_l.frontier = (S === 2);
+          markLabelState('lbl_pprf_l', 'active', '② 整合', S === 2);
+        }
+
+        if (S >= 3) {
+          pathways.pprf_l_to_cn6_l.active = true;
+          nucleiNodes.cn6_l.active = true;
+          nucleiNodes.cn6_l.frontier = (S === 3);
+          markLabelState('lbl_cn6_l', 'active', '③ 分流', S === 3);
+        }
+
+        if (S >= 4) {
+          pathways.cn6_l_to_lr_l.active = true;
+          pathways.mlf_r.active = true;
+          markLabelState('lbl_cn6_nerve_l', 'active', '④a 運動支', S === 4);
+          markLabelState('lbl_mlf_r', 'active', '④b 跨中線', S === 4);
+        }
+
+        if (S >= 5) {
+          activeMuscle.leftLR = amt;
+          leftYaw = maxAngle * amt;
+          nucleiNodes.cn3_r.active = true;
+          nucleiNodes.cn3_r.frontier = (S === 5);
+          markLabelState('lbl_lr_l', 'active', '⑤a 外展', S === 5);
+          markLabelState('lbl_cn3_r', 'active', '⑤b 轉接', S === 5);
+        }
+
+        if (S >= 6) {
+          if (state.lesion === 'cn3_r') {
+            lesionMarkers.cn3_r.visible = true;
+            pathways.cn3_r_to_mr_r.blocked = true;
+            markLabelState('lbl_cn3_nerve_r', 'lesion', '⛔ ⑥b CN III 阻斷', S === 6);
+            markLabelState('lbl_mr_r', 'blocked', '💤 無法內收', S === 6);
+          } else {
+            pathways.cn3_r_to_mr_r.active = true;
+            activeMuscle.rightMR = amt;
+            rightYaw = maxAngle * amt;
+            markLabelState('lbl_mr_r', 'active', '⑥b 內收完成', S === 6);
+          }
+        }
+      }
+
+      // =====================================================
+      // 疊加 CN III、CN IV、CN VI 腦神經損傷的特徵性眼位與肌肉張力
+      // =====================================================
+      if (state.lesion === 'cn3_r') {
+        // 右側動眼神經 (CN III) 麻痺：
+        // 1. 僅存外直肌 (CN VI) 與上斜肌 (CN IV) 作用 -> 右眼呈現「外下斜視 (Down and Out)」
+        // 2. 提上眼瞼肌麻痺 -> 上眼瞼下垂 (Ptosis)
+        // 3. 副交感纖維受損 -> 瞳孔散大固定 (Mydriasis)
+        lesionMarkers.cn3_r.visible = true;
+        pathways.cn3_r_to_mr_r.blocked = true;
+        nucleiNodes.cn4_l.active = true;
+        pathways.cn4_to_so_r.active = true;
+        activeMuscle.rightLR = Math.max(activeMuscle.rightLR, 0.72);
+        activeMuscle.rightSO = 0.65;
+        activeMuscle.rightSOTendon = 0.65;
+        activeMuscle.rightMR = 0;
+
+        rightYaw = -0.42;    // 向右外斜 (Out)
+        rightPitch = 0.28;   // 向下斜視 (Down)
+        rightRoll = 0.18;    // 上斜肌造成的輕微內旋
+        rightPupil = 1.48;   // 散瞳 (Mydriasis)
+        rightDroop = 0.38;   // 眼瞼下垂 (Ptosis)
+
+        markLabelState('lbl_cn3_nerve_r', 'lesion', '⛔ 右 CN III 損傷');
+        markLabelState('lbl_mr_r', 'blocked', '💤 內直肌麻痺');
+        markLabelState('lbl_lr_r', 'active', '⚡ 外直肌拉向外');
+        markLabelState('lbl_so_r', 'active', '⚡ 上斜肌拉向下');
+      } else if (state.lesion === 'cn4_r') {
+        // 右側滑車神經 (CN IV) 麻痺：
+        // 右上斜肌 (Right SO) 麻痺 -> 右眼無法內旋與下轉，呈現「上斜視 (Hypertropia，眼球偏高)」與「外旋 (Extorsion)」
+        // 當向左看 (內收 Adduction) 時，上斜肌下轉功能喪失最明顯，右眼上飄更顯著！
+        lesionMarkers.cn4_r.visible = true;
+        nucleiNodes.cn4_l.active = true;
+        pathways.cn4_to_so_r.blocked = true;
+        activeMuscle.rightSO = 0;
+        activeMuscle.rightSOTendon = 0;
+
+        const adductionFactor = rightYaw > 0 ? (rightYaw / maxAngle) : 0;
+        rightPitch = -0.22 - adductionFactor * 0.16; // 眼球向上飄高 (Hypertropia，內收時加劇)
+        rightRoll = -0.34;                           // 明顯外旋 (Extorsion)
+
+        markLabelState('lbl_cn4_l', 'active', '滑車核');
+        markLabelState('lbl_cn4_nerve_r', 'lesion', '⛔ 右 CN IV 損傷');
+        markLabelState('lbl_so_r', 'blocked', '💤 右上斜肌麻痺(眼上飄)');
+      } else if (state.lesion === 'cn6_r') {
+        // 右側外旋神經 (CN VI) 麻痺：
+        // 右外直肌麻痺，因右內直肌張力未受拮抗，正視與向右看時呈現「內斜視 (Esotropia)」
+        lesionMarkers.cn6_r.visible = true;
+        pathways.cn6_r_to_lr_r.blocked = true;
+        if (state.gazeValue >= -0.08 && state.gazeMode !== 'vergence') {
+          rightYaw = 0.24; // 內斜視
+          activeMuscle.rightMR = 0.45;
+        }
+        markLabelState('lbl_cn6_nerve_r', 'lesion', '⛔ 右 CN VI 損傷');
+        markLabelState('lbl_lr_r', 'blocked', '💤 右外直肌麻痺');
+      } else {
+        // 正常狀態下，上斜肌維持基礎協同張力
+        if (state.gazeMode === 'vergence' && state.vergenceProximity > 0.3) {
+          activeMuscle.rightSO = 0.25;
+          activeMuscle.rightSOTendon = 0.25;
+        }
+      }
+
+      state.leftTarget  = { yaw: leftYaw,  pitch: leftPitch,  roll: leftRoll,  pupilScale: leftPupil,  lidDroop: leftDroop };
+      state.rightTarget = { yaw: rightYaw, pitch: rightPitch, roll: rightRoll, pupilScale: rightPupil, lidDroop: rightDroop };
+      state.activeMuscle = activeMuscle;
+
+      refreshLabelStyles();
+      renderCompactSequencer();
+    }
+
+    // ==========================================
+    // 12. 緊湊型單步推進器與步驟列表渲染
+    // ==========================================
+    function getStationDefinitions() {
+      if (state.gazeMode === 'vergence') {
+        const cn3Blocked = (state.lesion === 'cn3_r');
+        return [
+          {
+            step: 1,
+            desc: '① 【近反射啟動】物體拉近時，中腦雙側動眼神經核 (CN III) 與 E-W 副交感核同時活化（不經橋腦與 MLF）。',
+            ok: true
+          },
+          {
+            step: 2,
+            desc: cn3Blocked
+              ? '⛔ ② 【右側 CN III 阻斷】左動眼神經正常傳導；但右側動眼神經受損阻斷！'
+              : '② 【雙側動眼神經傳導】訊號經雙側動眼神經 (CN III) 傳往雙眼內直肌與瞳孔括約肌。',
+            ok: !cn3Blocked
+          },
+          {
+            step: 3,
+            desc: cn3Blocked
+              ? '⛔ ③ 【單側輻輳失敗】左眼正常內聚縮瞳；右眼維持外下斜視、瞳孔散大與眼瞼下垂！'
+              : '③ 【輻輳與縮瞳完成】雙眼內直肌 (MR) 同步收縮使視線內聚對準近物，同時雙眼瞳孔縮小 (Miosis)！（即使有 INO 亦保留此功能）',
+            ok: !cn3Blocked
+          }
+        ];
+      }
+
+      if (Math.abs(state.gazeValue) <= 0.08 && state.gazeMode !== 'sweep') {
+        if (state.lesion === 'cn3_r') {
+          return [{ step: 1, desc: '⛔ 【右 CN III 損傷正視表現】右眼受未拮抗之右外直肌 (CN VI) 與右上斜肌 (CN IV) 拉扯呈現「外下斜視 (Down & Out)」，伴隨上眼瞼下垂 (Ptosis) 與瞳孔散大 (Mydriasis)。', ok: false }];
+        }
+        if (state.lesion === 'cn4_r') {
+          return [{ step: 1, desc: '⛔ 【右 CN IV 損傷正視表現】右上斜肌 (Superior Oblique) 麻痺，右眼失去下轉與內旋張力，呈現「上斜視 (Hypertropia，右眼偏高)」與「外旋 (Extorsion)」。試著切換「👈 向左看」觀察內收時上飄加劇！', ok: false }];
+        }
+        if (state.lesion === 'cn6_r') {
+          return [{ step: 1, desc: '⛔ 【右 CN VI 損傷正視表現】右外直肌麻痺，右眼受內直肌基礎張力拉扯呈現「內斜視 (Esotropia)」。', ok: false }];
+        }
+        return [
+          { step: 1, desc: '👁️ 正視遠方基礎張力平衡。可點選「向右看」、「向左看」或「🔍 輻輳運動 (拉近拉遠)」。', ok: true }
+        ];
+      }
+
+      const isRight = state.gazeValue >= 0;
+      if (isRight) {
+        const cn3Blocked = (state.lesion === 'cn3_r');
+        const cn4Blocked = (state.lesion === 'cn4_r');
+        const cn6Blocked = (state.lesion === 'cn6_r');
+        const mlfBlocked = (state.lesion === 'mlf_l');
+
+        return [
+          { step: 1, desc: '① 左額葉眼動區 (Left FEF) 發出向右掃視指令。', ok: true },
+          { step: 2, desc: '② 跨中線下行活化右側橋腦凝視中樞 (Right PPRF)。', ok: true },
+          { step: 3, desc: '③ 右側 PPRF 興奮右外旋神經核 (Right CN VI)。', ok: true },
+          {
+            step: 4,
+            desc: cn6Blocked
+              ? '⛔ ④ ④a 右外旋神經 (CN VI) 軸突受損阻斷；④b 正常跨入左側 MLF。'
+              : mlfBlocked
+              ? '⛔ ④ ④a 右外旋神經正常；④b 左側 MLF 阻斷 (左側 INO)！'
+              : '④ 雙軌分流：④a 右外旋神經 ＋ ④b 跨中線左側 MLF。',
+            ok: !cn6Blocked && !mlfBlocked
+          },
+          {
+            step: 5,
+            desc: cn6Blocked
+              ? '⛔ ⑤ ⑤a 右外直肌麻痺無法外展（維持內斜視）；⑤b 左動眼神經核正常活化。'
+              : mlfBlocked
+              ? '⛔ ⑤ ⑤a 右外直肌收縮外展(伴眼震)；⑤b 左 CN III 無訊號。'
+              : cn3Blocked
+              ? '⛔ ⑤ ⑤a 右外直肌正常收縮，但因右 CN III 麻痺伴隨下斜、垂瞼與散瞳。'
+              : '⑤ ⑤a 右外直肌收縮使右眼外展；⑤b 左動眼神經核轉接。',
+            ok: !cn6Blocked && !mlfBlocked && !cn3Blocked
+          },
+          {
+            step: 6,
+            desc: mlfBlocked
+              ? '⛔ ⑥ 左眼內直肌無收縮，左眼無法內收 (INO)！可點選上方「🔍 輻輳運動」驗證看近物時內收正常。'
+              : cn4Blocked
+              ? '⚠️ ⑥ 左眼正常內收；右眼雖可外展，但因右 CN IV 損傷伴隨輕微上斜與外旋。'
+              : '⑥ 左動眼神經驅動左內直肌 (Left MR) 收縮，雙眼向右共軛完成！',
+            ok: !mlfBlocked && !cn4Blocked
+          }
+        ];
+      } else {
+        const cn3Blocked = (state.lesion === 'cn3_r');
+        const cn4Blocked = (state.lesion === 'cn4_r');
+
+        return [
+          { step: 1, desc: '① 右額葉眼動區 (Right FEF) 發出向左掃視指令。', ok: true },
+          { step: 2, desc: '② 跨中線下行活化左側橋腦凝視中樞 (Left PPRF)。', ok: true },
+          { step: 3, desc: '③ 左側 PPRF 活化左外旋神經核 (Left CN VI)。', ok: true },
+          { step: 4, desc: '④ 雙軌分流：④a 左外旋神經 ＋ ④b 跨中線右側 MLF。', ok: true },
+          { step: 5, desc: '⑤ ⑤a 左外直肌收縮使左眼外展；⑤b 右動眼神經核轉接。', ok: true },
+          {
+            step: 6,
+            desc: cn3Blocked
+              ? '⛔ ⑥ 【右 CN III 損傷】右動眼神經阻斷，右內直肌無法收縮！右眼停留在「外下斜視 (Down & Out)」位置並伴隨垂瞼與散瞳。'
+              : cn4Blocked
+              ? '⛔ ⑥ 【右 CN IV 損傷特徵】右眼向左內收時，因右上斜肌麻痺失去下轉拉力，右眼「向上飄高 (Hypertropia)」與外旋最為明顯！'
+              : '⑥ 右動眼神經驅動右內直肌 (Right MR) 收縮，雙眼向左共軛完成！',
+            ok: !cn3Blocked && !cn4Blocked
+          }
+        ];
+      }
+    }
+
+    function renderCompactSequencer() {
+      const trackEl = document.getElementById('station-track');
+      const stepsEl = document.getElementById('status-steps');
+      const statusLabelEl = document.getElementById('seq-status-label');
+      const stationDefs = getStationDefinitions();
+      const S = state.playbackMode === 'continuous' ? state.maxSteps : state.currentStep;
+
+      if (statusLabelEl) {
+        statusLabelEl.textContent =
+          state.playbackMode === 'continuous'
+            ? '🔄 全路徑即時連動'
+            : `👣 單步檢視 (${S}/${state.maxSteps})`;
+      }
+
+      const circleNums = ['①', '②', '③', '④', '⑤', '⑥'];
+      trackEl.style.gridTemplateColumns = `repeat(${stationDefs.length}, 1fr)`;
+      trackEl.innerHTML = stationDefs
+        .map(st => {
+          const isReached = st.step <= S;
+          const isCurrent = state.playbackMode === 'step' && st.step === S;
+          let cls = 'st-cell';
+          if (isCurrent) cls += ' current';
+          else if (isReached) cls += ' reached';
+          if (isReached && !st.ok) cls += ' lesion-stop';
+          return `<button class="${cls}" onclick="jumpToStep(${st.step})">${circleNums[st.step - 1] || st.step}</button>`;
+        })
+        .join('');
+
+      stepsEl.innerHTML = stationDefs
+        .map(st => {
+          const isReached = st.step <= S;
+          const isCurrent = state.playbackMode === 'step' && st.step === S;
+          let cls = 'step-item';
+          if (!isReached) cls += ' future-step-row';
+          else if (!st.ok) cls += ' blocked';
+          if (isCurrent) cls += ' current-step-row';
+          return `<div class="${cls}" onclick="jumpToStep(${st.step})">${st.desc}</div>`;
+        })
+        .join('');
+
+      const playBtn = document.getElementById('btn-step-play');
+      const isPlayingNow = state.autoPlaying && state.playbackMode === 'step';
+      playBtn.classList.toggle('playing', isPlayingNow);
+      playBtn.textContent = isPlayingNow ? '⏸ 暫停' : '▶ 單步重播';
+    }
+
+    // ==========================================
+    // 13. UI 與鍵盤互動控制函式
+    // ==========================================
+    window.togglePanel = function(panelId, btnEl) {
+      const panel = document.getElementById(panelId);
+      const isCollapsed = panel.classList.toggle('collapsed');
+      btnEl.textContent = isCollapsed ? '＋' : '—';
+    };
+
+    window.startStepReplay = function() {
+      if (state.autoPlaying && state.playbackMode === 'step') {
+        state.autoPlaying = false;
+        state.playbackMode = 'continuous';
+        state.currentStep = state.maxSteps;
+      } else {
+        if (state.gazeMode === 'sweep') {
+          state.gazeMode = 'right';
+          state.gazeValue = 1.0;
+          updateGazeButtonsUI('right');
+        }
+        state.playbackMode = 'step';
+        state.currentStep = 1;
+        state.autoPlaying = true;
+        state.lastStepTime = clock.getElapsedTime();
+      }
+      evaluateNeuroPathway();
+    };
+
+    window.jumpToStep = function(stepNum) {
+      state.playbackMode = 'step';
+      state.autoPlaying = false;
+      state.currentStep = Math.max(1, Math.min(state.maxSteps, stepNum));
+      evaluateNeuroPathway();
+    };
+
+    window.stepPrev = function() {
+      state.playbackMode = 'step';
+      state.autoPlaying = false;
+      if (state.currentStep > 1) {
+        state.currentStep--;
+      }
+      evaluateNeuroPathway();
+    };
+
+    window.stepNext = function() {
+      state.playbackMode = 'step';
+      state.autoPlaying = false;
+      if (state.currentStep < state.maxSteps) {
+        state.currentStep++;
+      } else {
+        state.playbackMode = 'continuous';
+      }
+      evaluateNeuroPathway();
+    };
+
+    window.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight') stepNext();
+      else if (e.key === 'ArrowLeft') stepPrev();
+    });
+
+    function updateGazeButtonsUI(mode) {
+      ['right', 'left', 'center', 'sweep', 'vergence'].forEach(m => {
+        const el = document.getElementById('btn-' + m);
+        if (el) el.classList.toggle('active-gaze', m === mode);
+      });
+    }
+
+    window.setGazeMode = function(mode) {
+      state.gazeMode = mode;
+      state.autoPlaying = false;
+      state.playbackMode = 'continuous';
+
+      const gazeSlider = document.getElementById('gaze-slider');
+      if (mode === 'right') {
+        state.gazeValue = 1.0;
+        gazeSlider.value = 1.0;
+        state.autoVergence = false;
+      } else if (mode === 'left') {
+        state.gazeValue = -1.0;
+        gazeSlider.value = -1.0;
+        state.autoVergence = false;
+      } else if (mode === 'center') {
+        state.gazeValue = 0.0;
+        gazeSlider.value = 0.0;
+        state.autoVergence = false;
+      } else if (mode === 'vergence') {
+        state.gazeValue = 0.0;
+        gazeSlider.value = 0.0;
+      }
+
+      updateGazeButtonsUI(mode);
+      updateAutoVergeButtonUI();
+      evaluateNeuroPathway();
+    };
+
+    window.onGazeSliderInput = function(val) {
+      state.gazeMode = 'manual';
+      state.autoVergence = false;
+      state.autoPlaying = false;
+      state.playbackMode = 'continuous';
+      state.gazeValue = parseFloat(val);
+
+      updateGazeButtonsUI('');
+      if (state.gazeValue > 0.6) document.getElementById('btn-right').classList.add('active-gaze');
+      else if (state.gazeValue < -0.6) document.getElementById('btn-left').classList.add('active-gaze');
+      else if (Math.abs(state.gazeValue) < 0.1) document.getElementById('btn-center').classList.add('active-gaze');
+
+      updateAutoVergeButtonUI();
+      evaluateNeuroPathway();
+    };
+
+    // 物體遠近滑桿 (拉近拉遠觸發 Vergence 輻輳/開散運動)
+    window.onVergenceSliderInput = function(val) {
+      state.gazeMode = 'vergence';
+      state.autoVergence = false;
+      state.autoPlaying = false;
+      state.playbackMode = 'continuous';
+      state.vergenceProximity = parseFloat(val);
+
+      updateGazeButtonsUI('vergence');
+      updateAutoVergeButtonUI();
+      evaluateNeuroPathway();
+    };
+
+    window.toggleAutoVergence = function() {
+      state.gazeMode = 'vergence';
+      state.autoVergence = !state.autoVergence;
+      state.autoPlaying = false;
+      state.playbackMode = 'continuous';
+      updateGazeButtonsUI('vergence');
+      updateAutoVergeButtonUI();
+      evaluateNeuroPathway();
+    };
+
+    function updateAutoVergeButtonUI() {
+      const btn = document.getElementById('btn-auto-verge');
+      if (!btn) return;
+      btn.style.background = state.autoVergence ? '#c28242' : '#ffffff';
+      btn.style.color = state.autoVergence ? '#ffffff' : '#6e4217';
+      btn.textContent = state.autoVergence ? '⏸ 停止拉近拉遠' : '🔄 自動拉近拉遠';
+    }
+
+    window.setLesion = function(lesionType) {
+      state.lesion = lesionType;
+      state.autoPlaying = false;
+      state.playbackMode = 'continuous';
+
+      const types = ['none', 'cn3_r', 'cn4_r', 'cn6_r', 'mlf_l'];
+      types.forEach(t => {
+        const btn = document.getElementById('lesion-' + t);
+        if (!btn) return;
+        btn.classList.remove('active-normal', 'active-lesion');
+        if (t === lesionType) {
+          btn.classList.add(t === 'none' ? 'active-normal' : 'active-lesion');
+        }
+      });
+
+      evaluateNeuroPathway();
+    };
+
+    window.setLabelMode = function(mode) {
+      state.labelMode = mode;
+      ['active_only', 'smart_dim', 'all', 'none'].forEach(m => {
+        document.getElementById('lmode-' + m).classList.toggle('active-mode', m === mode);
+      });
+      refreshLabelStyles();
+    };
+
+    window.toggleCategory = function(catKey) {
+      state.labelCategories[catKey] = !state.labelCategories[catKey];
+      const btn = document.getElementById('cat-' + catKey);
+      if (btn) {
+        btn.classList.toggle('chip-on', state.labelCategories[catKey]);
+      }
+      refreshLabelStyles();
+    };
+
+    window.setCameraView = function(view) {
+      if (view === 'overview' || view === 'reset') {
+        camAnim = { pos: new THREE.Vector3(0, 22.5, 17.5), target: new THREE.Vector3(0, 0.1, 1.2) };
+      } else if (view === 'eyes') {
+        camAnim = { pos: new THREE.Vector3(0, 6.8, -13.5), target: new THREE.Vector3(0, 1.4, -5.4) };
+      } else if (view === 'brainstem') {
+        camAnim = { pos: new THREE.Vector3(0, 14.5, 9.5), target: new THREE.Vector3(0, -0.3, 3.6) };
+      }
+    };
+
+    controls.addEventListener('start', () => {
+      camAnim = null;
+    });
+
+    // ==========================================
+    // 14. 動畫主迴圈
+    // ==========================================
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const elapsed = clock.getElapsedTime();
+
+      // 1. 單步重播計時器：推進至最後一站後自動定格於全路徑，絕不把眼球歸零鎖死
+      if (state.playbackMode === 'step' && state.autoPlaying && state.maxSteps > 1) {
+        if (elapsed - state.lastStepTime >= state.stepIntervalSec) {
+          state.lastStepTime = elapsed;
+          if (state.currentStep < state.maxSteps) {
+            state.currentStep++;
+            evaluateNeuroPathway();
+          } else {
+            state.autoPlaying = false;
+            state.playbackMode = 'continuous';
+            evaluateNeuroPathway();
+          }
+        }
+      }
+
+      // 2. 左右來回自動掃視 (Auto Sweep)
+      if (state.gazeMode === 'sweep') {
+        state.gazeValue = Math.sin(elapsed * 1.45);
+        const gazeSlider = document.getElementById('gaze-slider');
+        if (gazeSlider) gazeSlider.value = state.gazeValue;
+        evaluateNeuroPathway();
+      }
+
+      // 3. 輻輳運動自動拉近拉遠 (Auto Vergence)
+      if (state.gazeMode === 'vergence' && state.autoVergence) {
+        state.vergenceProximity = (Math.sin(elapsed * 1.6) + 1) * 0.5;
+        const vSlider = document.getElementById('vergence-slider');
+        if (vSlider) vSlider.value = state.vergenceProximity;
+        evaluateNeuroPathway();
+      }
+
+      if (camAnim) {
+        camera.position.lerp(camAnim.pos, 0.08);
+        controls.target.lerp(camAnim.target, 0.08);
+        if (camera.position.distanceTo(camAnim.pos) < 0.08) camAnim = null;
+      }
+      controls.update();
+
+      // 4. 皮克斯彩球位置計算 (支援遠近 Z 軸拉近拉遠與水平 X 軸移動)
+      let targetBallPos = new THREE.Vector3(0, 3.1, -9.2);
+      if (state.gazeMode === 'vergence') {
+        // 根據 vergenceProximity 在遠方 (Z=-10.8, Y=3.3) 與鼻端近處 (Z=-6.35, Y=1.85) 之間平滑移動
+        const p = state.vergenceProximity;
+        const zPos = THREE.MathUtils.lerp(-10.8, -6.35, p);
+        const yPos = THREE.MathUtils.lerp(3.3, 1.85, p);
+        targetBallPos.set(0, yPos, zPos);
+      } else {
+        targetBallPos.set(state.gazeValue * 4.4, 3.1, -9.2);
+      }
+      luxoGroup.position.lerp(targetBallPos, 0.12);
+      luxoBall.rotation.y = elapsed * 1.4;
+      luxoBall.rotation.x = Math.sin(elapsed * 2) * 0.3;
+      luxoHalo.scale.setScalar(1 + Math.sin(elapsed * 4) * 0.08);
+
+      // 5. 眼球三軸旋轉 (Yaw / Pitch / Roll)、瞳孔縮放與上眼瞼下垂平滑插值
+      let nystagmusOffsetR = 0;
+      if (state.nystagmusRight) {
+        const phase = (elapsed * 3.8) % 1;
+        nystagmusOffsetR = (phase < 0.8 ? phase * 0.12 : (1 - phase) * 0.48) - 0.05;
+      }
+
+      state.leftCurr.yaw        = THREE.MathUtils.lerp(state.leftCurr.yaw, state.leftTarget.yaw, 0.14);
+      state.leftCurr.pitch      = THREE.MathUtils.lerp(state.leftCurr.pitch, state.leftTarget.pitch, 0.14);
+      state.leftCurr.roll       = THREE.MathUtils.lerp(state.leftCurr.roll, state.leftTarget.roll, 0.14);
+      state.leftCurr.pupilScale = THREE.MathUtils.lerp(state.leftCurr.pupilScale, state.leftTarget.pupilScale, 0.14);
+      state.leftCurr.lidDroop   = THREE.MathUtils.lerp(state.leftCurr.lidDroop, state.leftTarget.lidDroop, 0.14);
+
+      state.rightCurr.yaw        = THREE.MathUtils.lerp(state.rightCurr.yaw, state.rightTarget.yaw + nystagmusOffsetR, 0.14);
+      state.rightCurr.pitch      = THREE.MathUtils.lerp(state.rightCurr.pitch, state.rightTarget.pitch, 0.14);
+      state.rightCurr.roll       = THREE.MathUtils.lerp(state.rightCurr.roll, state.rightTarget.roll, 0.14);
+      state.rightCurr.pupilScale = THREE.MathUtils.lerp(state.rightCurr.pupilScale, state.rightTarget.pupilScale, 0.14);
+      state.rightCurr.lidDroop   = THREE.MathUtils.lerp(state.rightCurr.lidDroop, state.rightTarget.lidDroop, 0.14);
+
+      leftEye.eyeballPivot.rotation.set(state.leftCurr.pitch, state.leftCurr.yaw, state.leftCurr.roll);
+      rightEye.eyeballPivot.rotation.set(state.rightCurr.pitch, state.rightCurr.yaw, state.rightCurr.roll);
+
+      leftEye.pupilMesh.scale.setScalar(state.leftCurr.pupilScale);
+      rightEye.pupilMesh.scale.setScalar(state.rightCurr.pupilScale);
+
+      leftEye.upperLid.rotation.x = -0.32 + state.leftCurr.lidDroop;
+      rightEye.upperLid.rotation.x = -0.32 + state.rightCurr.lidDroop;
+
+      const hasAsymmetry = state.lesion !== 'none';
+      leftEye.brow.rotation.z = THREE.MathUtils.lerp(leftEye.brow.rotation.z, hasAsymmetry ? 0.12 : -state.leftCurr.yaw * 0.2, 0.1);
+      rightEye.brow.rotation.z = THREE.MathUtils.lerp(rightEye.brow.rotation.z, hasAsymmetry ? -0.2 : -state.rightCurr.yaw * 0.2, 0.1);
+
+      // 6. 眼外肌收縮動畫
+      const mState = state.activeMuscle || {};
+      Object.keys(muscles).forEach(k => {
+        const m = muscles[k];
+        const act = mState[k] || 0;
+        const targetThickness = 1 + act * 0.58;
+        m.mesh.scale.x = THREE.MathUtils.lerp(m.mesh.scale.x, targetThickness, 0.14);
+        m.mesh.scale.z = THREE.MathUtils.lerp(m.mesh.scale.z, targetThickness, 0.14);
+
+        if (act > 0.08) {
+          m.mat.color.setHex(0xc45a56);
+          m.mat.emissive.setHex(0xa83834);
+          m.mat.emissiveIntensity = 0.28 + Math.sin(elapsed * 6) * 0.1;
+        } else {
+          m.mat.color.setHex(0xc2aba8);
+          m.mat.emissive.setHex(0x000000);
+          m.mat.emissiveIntensity = 0;
+        }
+      });
+
+      // 7. 神經核團脈動
+      Object.values(nucleiNodes).forEach(node => {
+        if (node.lesion) {
+          node.mat.color.setHex(0xc4514d);
+          node.mat.emissive.setHex(0x992b28);
+          node.mat.emissiveIntensity = 0.45 + Math.sin(elapsed * 8) * 0.2;
+          node.ring.scale.setScalar(1 + Math.sin(elapsed * 8) * 0.15);
+          node.ringMat.opacity = 0.75;
+        } else if (node.frontier && state.playbackMode === 'step') {
+          node.mat.color.copy(node.baseColor);
+          node.mat.emissive.copy(node.baseColor);
+          node.mat.emissiveIntensity = 0.65 + Math.sin(elapsed * 8) * 0.22;
+          node.ring.scale.setScalar(1.26 + Math.sin(elapsed * 8) * 0.16);
+          node.ringMat.opacity = 0.95;
+        } else if (node.active) {
+          node.mat.color.copy(node.baseColor);
+          node.mat.emissive.copy(node.baseColor);
+          node.mat.emissiveIntensity = 0.38 + Math.sin(elapsed * 5) * 0.12;
+          node.ring.scale.setScalar(1.1 + Math.sin(elapsed * 5) * 0.08);
+          node.ringMat.opacity = 0.8;
+        } else {
+          node.mat.color.copy(node.baseColor);
+          node.mat.emissive.copy(node.baseColor);
+          node.mat.emissiveIntensity = 0.05;
+          node.ring.scale.setScalar(1.0);
+          node.ringMat.opacity = 0.25;
+        }
+      });
+
+      // 8. 神經導管與粒子流
+      Object.values(pathways).forEach(p => {
+        if (p.blocked) {
+          p.mat.color.setHex(0xc4514d);
+          p.mat.emissive.setHex(0x8f2926);
+          p.mat.opacity = 0.65;
+          p.mat.emissiveIntensity = 0.25;
+          p.particles.forEach(pt => (pt.mesh.visible = false));
+        } else if (p.active) {
+          p.mat.color.copy(p.baseColor);
+          p.mat.emissive.copy(p.baseColor);
+          p.mat.opacity = 0.88;
+          p.mat.emissiveIntensity = 0.35;
+
+          p.particles.forEach(pt => {
+            pt.mesh.visible = true;
+            const t = (elapsed * 0.65 + pt.offset) % 1;
+            const pos = p.curve.getPointAt(t);
+            pt.mesh.position.copy(pos);
+          });
+        } else {
+          p.mat.color.copy(p.baseColor);
+          p.mat.emissive.copy(p.baseColor);
+          p.mat.opacity = 0.22;
+          p.mat.emissiveIntensity = 0.02;
+          p.particles.forEach(pt => (pt.mesh.visible = false));
+        }
+      });
+
+      Object.values(lesionMarkers).forEach(m => {
+        if (m.visible) {
+          m.rotation.y = elapsed * 2.2;
+          const s = 1 + Math.sin(elapsed * 7) * 0.12;
+          m.scale.set(s, s, s);
+        }
+      });
+
+      updateLabelsProjection();
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    evaluateNeuroPathway();
+    animate();
+  </script>
+</body>
+</html>
